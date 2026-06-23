@@ -7,19 +7,16 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to Alibaba Cloud ACR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
@@ -28,8 +25,8 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/jxzzz/taskflow-backend:latest
-            ghcr.io/jxzzz/taskflow-backend:${{ github.sha }}
+            crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
+            crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:${{ github.sha }}
 
   deploy:
     needs: build-and-push
@@ -43,11 +40,11 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             echo "=== Pulling latest image ==="
-            docker pull ghcr.io/jxzzz/taskflow-backend:latest
+            docker pull crpi-ytlg6tfv9wxn5mfu-vpc.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
 
             echo "=== Restarting containers ==="
             cd /opt/taskflow
-            docker compose up -d --no-deps backend
+            docker compose -f docker-compose.prod.yml up -d --no-deps backend
 
             echo "=== Cleaning old images ==="
             docker image prune -f

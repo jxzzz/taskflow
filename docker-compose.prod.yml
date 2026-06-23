@@ -64,7 +64,7 @@ services:
     restart: always
 
   backend:
-    image: ghcr.io/jxzzz/taskflow-backend:latest   # ← 用镜像，不 build
+    image: crpi-ytlg6tfv9wxn5mfu-vpc.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
     container_name: taskflow-backend
     ports:
       - "8080:8080"
