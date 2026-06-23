@@ -1,0 +1,123 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: taskflow
+
+  datasource:
+    url: jdbc:mysql://mysql:3306/taskflow_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&cachePrepStmts=true&useServerPrepStmts=true
+    username: root
+    password: root123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      # 连接池基础配置
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 3000
+      # 连接检测
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      # 空闲连接回收
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      max-evictable-idle-time-millis: 600000
+      # 连接保活（比 MySQL wait_timeout 小）
+      keep-alive: true
+      keep-alive-between-time-millis: 60000
+      # 连接泄漏检测
+      remove-abandoned: true
+      remove-abandoned-timeout: 30
+      log-abandoned: true
+      # 过滤器（stat=监控, wall=SQL注入防护）
+      filters: stat,wall
+      # 监控页面
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        login-username: admin
+        login-password: druid123456
+      # Web 监控
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
+      # Spring 监控
+      aop-patterns: com.taskflow.service.*,com.taskflow.controller.*
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: redis123456
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: admin
+    password: admin123456
+    # ============ 可靠性配置 ============
+    # 生产者确认：Broker 收到消息后回调
+    publisher-confirm-type: correlated
+    # 无法路由的消息退回生产者
+    publisher-returns: true
+    template:
+      # 消息默认持久化（写入磁盘，Broker 重启不丢）
+      delivery-mode: persistent
+    listener:
+      simple:
+        # 自动确认：正常完成自动 ack，抛异常自动 nack + 重试
+        acknowledge-mode: auto
+        # 每条消息最大重试 3 次，耗尽后投死信队列
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1000ms
+          multiplier: 2.0
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT
+jwt:
+  secret: taskflow-jwt-secret-key-2026-must-be-at-least-256-bits-long
+  expiration: 86400000  # 24 hours
+
+# MinIO
+minio:
+  endpoint: http://minio:9000
+  access-key: minioadmin
+  secret-key: minioadmin123
+  bucket: taskflow
+
+# SpringDoc / Swagger UI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.taskflow.controller

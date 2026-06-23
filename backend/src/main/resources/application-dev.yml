@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/taskflow_db?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+
+  data:
+    redis:
+      host: localhost
+      password: redis123456
+
+  rabbitmq:
+    host: localhost
+
+  jpa:
+    show-sql: false
+
+minio:
+  endpoint: http://localhost:9000
+
+logging:
+  level:
+    com.taskflow: debug
+
+knife4j:
+  enable: true
