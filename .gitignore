@@ -13,6 +13,7 @@ pom.xml.versionsBackup
 .project
 .classpath
 .settings/
+.claude/
 
 # ============ OS ============
 .DS_Store
