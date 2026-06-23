@@ -1,4 +1,4 @@
-name: Build, Push & Deploy
+name: Build & Push
 
 on:
   push:
@@ -27,24 +27,3 @@ jobs:
           tags: |
             crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
             crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:${{ github.sha }}
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to server via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            echo "=== Pulling latest image ==="
-            docker pull crpi-ytlg6tfv9wxn5mfu-vpc.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
-
-            echo "=== Restarting containers ==="
-            cd /opt/taskflow
-            docker compose -f docker-compose.prod.yml up -d --no-deps backend
-
-            echo "=== Cleaning old images ==="
-            docker image prune -f
