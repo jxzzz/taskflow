@@ -65,9 +65,9 @@ export default function KanbanColumn({
   const isEmpty = list.tasks.length === 0;
 
   const columnStyle: React.CSSProperties = {
-    width: 296,
-    minWidth: 296,
-    flexShrink: 0,
+    flex: '1 1 0',
+    minWidth: 260,
+    maxWidth: 380,
     background: '#f5faf6',
     borderRadius: 'var(--radius-lg)',
     padding: '12px 14px 10px',

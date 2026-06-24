@@ -89,7 +89,7 @@ export default function MainLayout() {
       <Layout>
         <Header />
         <div style={{ flex: 1, overflow: 'auto', background: 'var(--color-bg-deep)' }}>
-          <div style={{ padding: '28px 32px', maxWidth: 1480, margin: '0 auto' }}>
+          <div style={{ padding: '28px clamp(24px, 6vw, 160px)', margin: '0 auto' }}>
             <Content>
               <Outlet />
             </Content>

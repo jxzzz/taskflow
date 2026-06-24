@@ -19,7 +19,6 @@ import {
   ClockCircleOutlined,
   LinkOutlined,
   PlusOutlined,
-  ThunderboltOutlined,
   AppstoreOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons';
@@ -28,7 +27,6 @@ import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortabl
 import dayjs from 'dayjs';
 import PageHeader from '@/components/common/PageHeader';
 import EmptyKanban from '@/components/common/EmptyKanban';
-import QuickAddModal from '@/components/common/QuickAddModal';
 import TaskCreateModal from '@/components/common/TaskCreateModal';
 import TaskDetailContent from '@/pages/projects/TaskDetailContent';
 import KanbanColumn from '@/pages/projects/KanbanColumn';
@@ -63,10 +61,10 @@ export default function ProjectDetailPage() {
   const [addingList, setAddingList] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const { data: taskDetail, isFetching: taskLoading } = useTaskDetail(selectedTaskId);
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const [taskCreateListId, setTaskCreateListId] = useState<number | undefined>();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [focusMode, setFocusMode] = useState(true);
 
   // ---- Drag & Drop ----
   const {
@@ -85,14 +83,13 @@ export default function ProjectDetailPage() {
   });
 
   // ---- Task creation ----
-  const { handleQuickAddSubmit, handleTaskCreateSubmit, handleBootstrap } = useTaskCreation({
+  const { handleTaskCreateSubmit, handleBootstrap } = useTaskCreation({
     lists,
     projectId,
     taskCreateListId,
     createList,
     createTask,
     queryClient,
-    onQuickAddClose: () => setQuickAddOpen(false),
     onTaskCreateClose: () => setTaskCreateOpen(false),
   });
 
@@ -101,7 +98,6 @@ export default function ProjectDetailPage() {
     listCount,
     addingList,
     onBootstrap: handleBootstrap,
-    onOpenQuickAdd: () => setQuickAddOpen(true),
   });
 
   // ---- Add list ----
@@ -168,71 +164,69 @@ export default function ProjectDetailPage() {
         }
       />
 
-      {/* Info bar + view switcher */}
+      {/* Project info — metadata row */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
           gap: 14,
-          padding: '10px 0',
-          marginBottom: 8,
+          padding: '6px 0 4px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Tag
-            style={{
-              background: 'var(--tag-lavender)',
-              color: 'var(--tag-lavender-text)',
-              border: 'none',
-              margin: 0,
-            }}
-          >
-            {project.ownerName || `用户 #${project.ownerId}`}
-          </Tag>
-          <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
-          <TeamOutlined style={{ color: 'var(--color-lavender)', fontSize: 13 }} />
-          <Text style={{ fontSize: 13, color: 'var(--color-ink-secondary)' }}>
-            {project.memberCount} 人
-          </Text>
-          <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
-          <ClockCircleOutlined style={{ color: 'var(--color-ink-tertiary)', fontSize: 13 }} />
-          <Text style={{ fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
-            {project.createTime ? dayjs(project.createTime).format('YYYY-MM-DD') : '—'}
-          </Text>
-          {project.projectUrl && (
-            <>
-              <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
-              <a
-                href={project.projectUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 12.5,
-                  color: 'var(--color-sky, #5a809b)',
-                  fontFamily: "'DM Sans', sans-serif",
-                  textDecoration: 'none',
-                  transition: 'opacity 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.opacity = '0.7';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.opacity = '1';
-                }}
-              >
-                <LinkOutlined style={{ fontSize: 11 }} />
-                {new URL(project.projectUrl).hostname}
-              </a>
-            </>
-          )}
-        </div>
+        <Tag
+          style={{
+            background: 'var(--tag-lavender)',
+            color: 'var(--tag-lavender-text)',
+            border: 'none',
+            margin: 0,
+          }}
+        >
+          {project.ownerName || `用户 #${project.ownerId}`}
+        </Tag>
+        <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
+        <TeamOutlined style={{ color: 'var(--color-lavender)', fontSize: 13 }} />
+        <Text style={{ fontSize: 13, color: 'var(--color-ink-secondary)' }}>
+          {project.memberCount} 人
+        </Text>
+        <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
+        <ClockCircleOutlined style={{ color: 'var(--color-ink-tertiary)', fontSize: 13 }} />
+        <Text style={{ fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
+          {project.createTime ? dayjs(project.createTime).format('YYYY-MM-DD') : '—'}
+        </Text>
+        {project.projectUrl && (
+          <>
+            <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
+            <a
+              href={project.projectUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 12.5,
+                color: 'var(--color-sky, #5a809b)',
+                fontFamily: "'DM Sans', sans-serif",
+                textDecoration: 'none',
+              }}
+            >
+              <LinkOutlined style={{ fontSize: 11 }} />
+              {new URL(project.projectUrl).hostname}
+            </a>
+          </>
+        )}
+      </div>
 
-        {/* View switcher — only show when there are lists */}
-        {listCount > 0 && (
+      {/* View controls — toolbar row */}
+      {listCount > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '8px 0 14px',
+          }}
+        >
           <Segmented
             value={viewMode}
             onChange={(val) => setViewMode(val as 'kanban' | 'list')}
@@ -245,8 +239,67 @@ export default function ProjectDetailPage() {
               borderRadius: 'var(--radius-sm)',
             }}
           />
-        )}
-      </div>
+
+          <span style={{ width: 1, height: 20, background: 'var(--color-border-default)', flexShrink: 0 }} />
+
+          {/* Focus toggle */}
+          <button
+            type="button"
+            onClick={() => setFocusMode(!focusMode)}
+            title={focusMode ? '退出专注模式' : '进入专注模式'}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              height: 28,
+              padding: '0 10px',
+              borderRadius: 14,
+              border: 'none',
+              background: focusMode ? 'var(--color-lavender-soft)' : 'transparent',
+              cursor: 'pointer',
+              transition: 'background 0.25s ease',
+            }}
+          >
+            <span
+              style={{
+                width: 28,
+                height: 16,
+                borderRadius: 8,
+                background: focusMode ? 'var(--color-lavender)' : 'rgba(0,0,0,0.12)',
+                position: 'relative',
+                transition: 'background 0.3s ease',
+                flexShrink: 0,
+              }}
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 2,
+                  left: focusMode ? 14 : 2,
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  background: '#fff',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  transition: 'left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                }}
+              />
+            </span>
+            <Text
+              style={{
+                fontSize: 12.5,
+                fontWeight: 500,
+                fontFamily: "'DM Sans', sans-serif",
+                color: focusMode ? 'var(--color-lavender)' : 'var(--color-ink-disabled)',
+                transition: 'color 0.25s ease',
+                userSelect: 'none',
+              }}
+            >
+              专注
+            </Text>
+          </button>
+        </div>
+      )}
 
       {/* ====== Kanban View ====== */}
       {viewMode === 'kanban' && (
@@ -289,11 +342,32 @@ export default function ProjectDetailPage() {
               minHeight: 0,
             }}
           >
-            <SortableContext
-              items={lists.map((l) => `list-${l.id}`)}
-              strategy={horizontalListSortingStrategy}
-            >
-              {lists.map((list) => (
+            {/* Columns: draggable when not in focus, static in focus */}
+            {!focusMode ? (
+              <SortableContext
+                items={lists.map((l) => `list-${l.id}`)}
+                strategy={horizontalListSortingStrategy}
+              >
+                {lists.map((list) => (
+                  <KanbanColumn
+                    key={list.id}
+                    list={list}
+                    projectId={projectId}
+                    allLists={lists}
+                    onCardMoved={() => {}}
+                    onCardClick={(cardId) => setSelectedTaskId(cardId)}
+                    onTaskDeleted={(taskId) => {
+                      if (taskId === selectedTaskId) setSelectedTaskId(null);
+                    }}
+                    onAddTask={(listId) => {
+                      setTaskCreateListId(listId);
+                      setTaskCreateOpen(true);
+                    }}
+                  />
+                ))}
+              </SortableContext>
+            ) : (
+              lists.map((list) => (
                 <KanbanColumn
                   key={list.id}
                   list={list}
@@ -309,29 +383,32 @@ export default function ProjectDetailPage() {
                     setTaskCreateOpen(true);
                   }}
                 />
-              ))}
-            </SortableContext>
+              ))
+            )}
 
-            {/* Add list column */}
-            {addingList ? (
+            {/* Add list — hidden in focus mode */}
+            {!focusMode && (addingList ? (
               <div
                 style={{
-                  width: 260,
+                  flex: '1 1 0',
                   minWidth: 260,
-                  flexShrink: 0,
-                  background: 'var(--color-bg-surface)',
+                  maxWidth: 380,
+                  background: 'var(--color-bg-elevated)',
                   borderRadius: 'var(--radius-lg)',
-                  padding: 14,
+                  border: '2px solid var(--color-lavender-soft)',
+                  padding: 16,
+                  boxShadow: 'var(--shadow-card)',
+                  animation: 'addListExpand 0.25s cubic-bezier(0.19, 1, 0.22, 1)',
                 }}
               >
                 <Input
                   autoFocus
                   size="small"
-                  placeholder="列表名称"
+                  placeholder="输入列表名称，回车创建"
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
                   onPressEnter={handleAddList}
-                  style={{ marginBottom: 8, borderRadius: 'var(--radius-sm)' }}
+                  style={{ marginBottom: 10, borderRadius: 'var(--radius-sm)' }}
                 />
                 <Space size={6}>
                   <Button
@@ -341,7 +418,7 @@ export default function ProjectDetailPage() {
                     loading={createList.isPending}
                     style={{ borderRadius: 'var(--radius-xs)' }}
                   >
-                    添加
+                    创建
                   </Button>
                   <Button
                     size="small"
@@ -356,21 +433,66 @@ export default function ProjectDetailPage() {
                 </Space>
               </div>
             ) : (
-              <Button
-                icon={<PlusOutlined />}
+              <button
+                type="button"
                 onClick={() => setAddingList(true)}
                 style={{
-                  minWidth: 200,
-                  flexShrink: 0,
+                  flex: '1 1 0',
+                  minWidth: 160,
+                  maxWidth: 380,
+                  height: '100%',
+                  minHeight: 120,
                   borderRadius: 'var(--radius-lg)',
-                  fontSize: 13,
-                  color: 'var(--color-ink-tertiary)',
-                  height: 44,
+                  border: '2px dashed rgba(155, 151, 212, 0.18)',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
+                  animation: 'addListFadeIn 0.4s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.4)';
+                  e.currentTarget.style.background = 'rgba(155, 151, 212, 0.03)';
+                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(155, 151, 212, 0.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.18)';
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                添加列表
-              </Button>
-            )}
+                <span
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: '50%',
+                    background: 'rgba(155, 151, 212, 0.10)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#9b97d4',
+                    fontSize: 16,
+                    transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  }}
+                >
+                  <PlusOutlined />
+                </span>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: 'rgba(155, 151, 212, 0.5)',
+                    fontWeight: 500,
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  新建列表
+                </Text>
+              </button>
+            ))}
 
             {/* Empty state */}
             {lists.length === 0 && !addingList && <EmptyKanban onBootstrap={handleBootstrap} />}
@@ -402,42 +524,6 @@ export default function ProjectDetailPage() {
         )
       )}
 
-      {/* FAB — Quick-add */}
-      <button
-        className="quick-add-fab"
-        onClick={() => setQuickAddOpen(true)}
-        title="Quick Add Task (⌘K)"
-        style={{
-          position: 'fixed',
-          bottom: 32,
-          right: 36,
-          width: 52,
-          height: 52,
-          borderRadius: '50%',
-          border: 'none',
-          background: 'linear-gradient(135deg, #5B9FED 0%, #4A85D9 50%, #3D6FBF 100%)',
-          color: '#fff',
-          fontSize: 22,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 99,
-          boxShadow: '0 4px 16px rgba(74, 133, 217, 0.35), 0 0 0 2px rgba(74, 133, 217, 0.1)',
-          transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
-        }}
-      >
-        <ThunderboltOutlined style={{ fontSize: 20 }} />
-      </button>
-
-      {/* Quick-add modal */}
-      <QuickAddModal
-        open={quickAddOpen}
-        onClose={() => setQuickAddOpen(false)}
-        onSubmit={handleQuickAddSubmit}
-        lists={lists}
-      />
-
       {/* Task create modal */}
       <TaskCreateModal
         open={taskCreateOpen}
@@ -462,6 +548,18 @@ export default function ProjectDetailPage() {
           <Empty description="未找到该任务" style={{ marginTop: 40 }} />
         )}
       </Drawer>
+
+      {/* Inline keyframes for add-list animations */}
+      <style>{`
+        @keyframes addListFadeIn {
+          from { opacity: 0; transform: scale(0.96); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes addListExpand {
+          from { opacity: 0; transform: scale(0.94); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

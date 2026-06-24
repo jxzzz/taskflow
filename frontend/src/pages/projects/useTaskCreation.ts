@@ -10,7 +10,7 @@ interface UseTaskCreationParams {
   createList: { mutate: (name: string, opts?: any) => void; isPending: boolean };
   createTask: { mutate: (args: { listId: number; data: CreateTaskRequest }, opts?: any) => void };
   queryClient: { invalidateQueries: (args: any) => void };
-  onQuickAddClose: () => void;
+  onQuickAddClose?: () => void;
   onTaskCreateClose: () => void;
 }
 
@@ -36,7 +36,7 @@ export function useTaskCreation({
             if (listId) {
               createTask.mutate(
                 { listId, data: { title: data.title, dueDate: data.dueDate, priority: data.priority } },
-                { onSuccess: () => { onQuickAddClose(); message.success('任务已创建 ✨'); } },
+                { onSuccess: () => { onQuickAddClose?.(); message.success('任务已创建 ✨'); } },
               );
             }
           },
@@ -45,7 +45,7 @@ export function useTaskCreation({
       }
       createTask.mutate(
         { listId: targetListId, data: { title: data.title, dueDate: data.dueDate, priority: data.priority } },
-        { onSuccess: () => { onQuickAddClose(); message.success('任务已创建 ✨'); } },
+        { onSuccess: () => { onQuickAddClose?.(); message.success('任务已创建 ✨'); } },
       );
     },
     [lists, createList, createTask, onQuickAddClose],

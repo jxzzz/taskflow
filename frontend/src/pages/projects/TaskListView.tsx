@@ -1,9 +1,6 @@
-import { useMemo } from 'react';
-import { Typography, Tag } from 'antd';
-import {
-  ClockCircleOutlined,
-  FlagOutlined,
-} from '@ant-design/icons';
+import { useState, useEffect, useMemo } from 'react';
+import { Typography } from 'antd';
+import { ClockCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { TaskCardBrief, TaskListSummary } from '@/types/task';
 
@@ -14,106 +11,156 @@ interface TaskListViewProps {
   onTaskClick: (taskId: number) => void;
 }
 
-const PRIORITY_CONFIG: Record<number, { label: string; color: string; bg: string }> = {
-  0: { label: '普通', color: 'var(--color-ink-tertiary)', bg: 'rgba(0,0,0,0.04)' },
-  1: { label: '紧急', color: '#9e853d', bg: '#faf0da' },
-  2: { label: '非常紧急', color: '#b86d6a', bg: '#fae3e1' },
+const LIST_DOT: string[] = ['#9b97d4', '#f0a850', '#9bbc9e', '#99bcdb', '#e8a09c'];
+
+const PRIORITY_DOT: Record<number, string> = {
+  0: 'transparent',
+  1: '#e8cf8e',
+  2: '#e8a09c',
 };
 
-const LIST_COLORS = [
-  { color: '#9b97d4', bg: 'rgba(155,151,212,0.08)' },
-  { color: '#f0a850', bg: 'rgba(240,168,80,0.08)' },
-  { color: '#9bbc9e', bg: 'rgba(155,188,158,0.08)' },
-  { color: '#99bcdb', bg: 'rgba(153,188,219,0.08)' },
-  { color: '#e8a09c', bg: 'rgba(232,160,156,0.08)' },
-];
+const PRIORITY_LABEL: Record<number, string> = {
+  0: '',
+  1: '紧急',
+  2: '非常紧急',
+};
 
 interface FlatTask extends TaskCardBrief {
   listId: number;
   listName: string;
 }
 
+const GRID = '48px 1fr 68px 60px 72px 80px';
+
 export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) {
-  const tasks = useMemo<FlatTask[]>(() => {
-    const result: FlatTask[] = [];
-    lists.forEach((list) => {
-      list.tasks.forEach((task) => {
-        result.push({ ...task, listId: list.id, listName: list.name });
-      });
-    });
-    return result;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(false);
+    const t = setTimeout(() => setMounted(true), 30);
+    return () => clearTimeout(t);
   }, [lists]);
 
-  const totalTasks = tasks.length;
+  const { tasks, totalTasks } = useMemo(() => {
+    const flat: FlatTask[] = [];
+    lists.forEach((list) => {
+      list.tasks.forEach((task) => {
+        flat.push({ ...task, listId: list.id, listName: list.name });
+      });
+    });
+    return { tasks: flat, totalTasks: flat.length };
+  }, [lists]);
 
   if (totalTasks === 0) return null;
 
   return (
-    <div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
-      {/* Column headers */}
+    <div style={{ flex: 1, overflow: 'auto', minHeight: 0, paddingBottom: 24 }}>
+      {/* Header */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 140px 100px 100px 130px',
-          gap: 0,
-          padding: '8px 16px',
-          borderBottom: '1px solid var(--color-border-subtle)',
-          position: 'sticky',
-          top: 0,
-          background: 'var(--color-bg-deep)',
-          zIndex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 4px 14px',
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? 'translateY(0)' : 'translateY(6px)',
+          transition: 'opacity 0.4s ease, transform 0.4s ease',
         }}
       >
-        {['任务', '所属列表', '优先级', '负责人', '截止日期'].map((label) => (
-          <Text
-            key={label}
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: 'var(--color-ink-disabled)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.06em',
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            {label}
-          </Text>
-        ))}
+        <Text style={{ fontSize: 11.5, color: 'var(--color-ink-disabled)', fontFamily: "'DM Sans', sans-serif" }}>
+          共 {totalTasks} 个任务
+        </Text>
       </div>
 
-      {/* Rows */}
-      {tasks.map((task, i) => {
-        const priority = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG[0];
-        const listColor = LIST_COLORS[task.listId % LIST_COLORS.length];
-        const isOverdue = task.dueDate && dayjs(task.dueDate).isBefore(dayjs());
+      {/* Table */}
+      <div
+        style={{
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--color-border-subtle)',
+          overflow: 'hidden',
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? 'translateY(0)' : 'translateY(8px)',
+          transition: 'opacity 0.45s ease 0.05s, transform 0.45s ease 0.05s',
+        }}
+      >
+        {/* Column headers */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: GRID,
+            padding: '10px 16px',
+            background: 'var(--color-bg-surface)',
+            borderBottom: '1px solid var(--color-border-subtle)',
+          }}
+        >
+          {['', '任务', '列表', '优先级', '检查项', '截止日期'].map((label) => (
+            <Text
+              key={label}
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--color-ink-disabled)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              {label}
+            </Text>
+          ))}
+        </div>
 
-        return (
-          <div
-            key={task.id}
-            onClick={() => onTaskClick(task.id)}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 140px 100px 100px 130px',
-              gap: 0,
-              padding: '12px 16px',
-              borderBottom: '1px solid var(--color-border-subtle)',
-              cursor: 'pointer',
-              background: 'transparent',
-              transition: 'background 0.15s ease',
-              alignItems: 'center',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--color-bg-hover)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-            }}
-          >
-            {/* Task title + checklist indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        {/* Rows */}
+        {tasks.map((task, i) => {
+          const dot = LIST_DOT[task.listId % LIST_DOT.length];
+          const pDot = PRIORITY_DOT[task.priority] || PRIORITY_DOT[0];
+          const pLabel = PRIORITY_LABEL[task.priority] || '';
+          const isOverdue = task.dueDate && dayjs(task.dueDate).isBefore(dayjs());
+          const checklistPct =
+            task.checklistCount > 0
+              ? Math.round((task.completedChecklistCount / task.checklistCount) * 100)
+              : 0;
+          const checklistDone = task.checklistCount > 0 && task.completedChecklistCount === task.checklistCount;
+
+          return (
+            <div
+              key={task.id}
+              onClick={() => onTaskClick(task.id)}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: GRID,
+                alignItems: 'center',
+                padding: '11px 16px',
+                borderBottom: '1px solid var(--color-border-subtle)',
+                cursor: 'pointer',
+                background: 'transparent',
+                transition: 'background 0.15s ease',
+                opacity: mounted ? 1 : 0,
+                transform: mounted ? 'translateX(0)' : 'translateX(-8px)',
+                transitionDelay: mounted ? `${0.08 + i * 0.025}s` : '0s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--color-bg-hover)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              {/* Priority dot */}
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: pDot,
+                  justifySelf: 'center',
+                }}
+              />
+
+              {/* Title */}
               <Text
                 style={{
-                  fontSize: 13.5,
+                  fontSize: 13,
                   fontWeight: 500,
                   color: 'var(--color-ink-primary)',
                   fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
@@ -124,101 +171,95 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
               >
                 {task.title}
               </Text>
-              {task.checklistCount > 0 && (
-                <span style={{
-                  fontSize: 11,
-                  color: task.completedChecklistCount === task.checklistCount
-                    ? 'var(--color-sage)'
-                    : 'var(--color-ink-tertiary)',
-                  fontWeight: 500,
-                  fontFamily: "'DM Sans', sans-serif",
-                  fontVariantNumeric: 'tabular-nums',
-                  flexShrink: 0,
-                }}>
-                  {task.completedChecklistCount}/{task.checklistCount}
-                </span>
-              )}
-            </div>
 
-            {/* List name */}
-            <Tag
-              style={{
-                background: listColor.bg,
-                color: listColor.color,
-                border: 'none',
-                margin: 0,
-                fontSize: 11.5,
-                fontWeight: 500,
-                borderRadius: 9999,
-                padding: '1px 10px',
-                maxWidth: 'fit-content',
-              }}
-            >
-              {task.listName}
-            </Tag>
-
-            {/* Priority */}
-            <span
-              style={{
-                fontSize: 12,
-                color: priority.color,
-                fontWeight: 500,
-                fontFamily: "'DM Sans', sans-serif",
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              {task.priority > 0 && <FlagOutlined style={{ fontSize: 10 }} />}
-              {priority.label}
-            </span>
-
-            {/* Assignee */}
-            <Text
-              style={{
-                fontSize: 12.5,
-                color: task.assigneeName ? 'var(--color-ink-secondary)' : 'var(--color-ink-disabled)',
-                fontFamily: "'DM Sans', sans-serif",
-              }}
-            >
-              {task.assigneeName || '—'}
-            </Text>
-
-            {/* Due date */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {task.dueDate && (
-                <ClockCircleOutlined
-                  style={{
-                    fontSize: 11,
-                    color: isOverdue ? '#b86d6a' : 'var(--color-ink-tertiary)',
-                  }}
-                />
-              )}
+              {/* List */}
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 11.5,
+                  color: dot,
+                  fontWeight: 500,
                   fontFamily: "'DM Sans', sans-serif",
-                  fontVariantNumeric: 'tabular-nums',
-                  color: task.dueDate
-                    ? isOverdue
-                      ? '#b86d6a'
-                      : 'var(--color-ink-secondary)'
-                    : 'var(--color-ink-disabled)',
-                  fontWeight: task.dueDate ? 500 : 400,
                 }}
               >
-                {task.dueDate ? dayjs(task.dueDate).format('MM/DD HH:mm') : '—'}
+                {task.listName}
               </Text>
-            </div>
-          </div>
-        );
-      })}
 
-      {/* Footer count */}
-      <div style={{ padding: '10px 16px', borderTop: 'none' }}>
-        <Text style={{ fontSize: 11.5, color: 'var(--color-ink-disabled)', fontFamily: "'DM Sans', sans-serif" }}>
-          共 {totalTasks} 个任务
-        </Text>
+              {/* Priority */}
+              <Text
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 500,
+                  fontFamily: "'DM Sans', sans-serif",
+                  color: task.priority > 0 ? PRIORITY_DOT[task.priority] : 'var(--color-ink-disabled)',
+                }}
+              >
+                {pLabel || '—'}
+              </Text>
+
+              {/* Checklist */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {task.checklistCount > 0 ? (
+                  <>
+                    <div
+                      style={{
+                        width: 32,
+                        height: 3,
+                        borderRadius: 2,
+                        background: 'rgba(0,0,0,0.06)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          borderRadius: 2,
+                          width: `${checklistPct}%`,
+                          background: checklistDone ? 'var(--color-sage)' : 'var(--color-lavender)',
+                          transition: 'width 0.4s ease',
+                        }}
+                      />
+                    </div>
+                    <Text
+                      style={{
+                        fontSize: 10.5,
+                        fontVariantNumeric: 'tabular-nums',
+                        fontFamily: "'DM Sans', sans-serif",
+                        color: checklistDone ? 'var(--color-sage)' : 'var(--color-ink-tertiary)',
+                        fontWeight: 500,
+                      }}
+                    >
+                      {task.completedChecklistCount}/{task.checklistCount}
+                    </Text>
+                  </>
+                ) : (
+                  <Text style={{ fontSize: 11.5, color: 'var(--color-ink-disabled)' }}>—</Text>
+                )}
+              </div>
+
+              {/* Due date */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+                {task.dueDate && (
+                  <ClockCircleOutlined
+                    style={{ fontSize: 10.5, color: isOverdue ? '#b86d6a' : 'var(--color-ink-disabled)' }}
+                  />
+                )}
+                <Text
+                  style={{
+                    fontSize: 11.5,
+                    fontVariantNumeric: 'tabular-nums',
+                    fontFamily: "'DM Sans', sans-serif",
+                    color: task.dueDate
+                      ? isOverdue ? '#b86d6a' : 'var(--color-ink-secondary)'
+                      : 'var(--color-ink-disabled)',
+                    fontWeight: task.dueDate ? 500 : 400,
+                  }}
+                >
+                  {task.dueDate ? dayjs(task.dueDate).format('MM/DD') : '—'}
+                </Text>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
