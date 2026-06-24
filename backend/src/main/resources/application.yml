@@ -23,7 +23,7 @@ spring:
       test-on-borrow: false
       test-on-return: false
       # 空闲连接回收
-      time-between-eviction-runs-millis: 60000
+      time-between-eviction-runs-millis: 30000
       min-evictable-idle-time-millis: 300000
       max-evictable-idle-time-millis: 600000
       # 连接保活（比 MySQL wait_timeout 小）
