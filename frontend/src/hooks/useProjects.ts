@@ -3,11 +3,11 @@ import { projectApi } from '@/api/projects';
 import { App } from 'antd';
 import type { UpdateProjectRequest } from '@/types/project';
 
-/** 项目列表 */
-export function useProjects(page = 1, size = 20) {
+/** 项目列表（支持 filter: 'my' | 'public' | undefined） */
+export function useProjects(page = 1, size = 20, filter?: string) {
   return useQuery({
-    queryKey: ['projects', page, size],
-    queryFn: () => projectApi.list(page, size),
+    queryKey: ['projects', page, size, filter],
+    queryFn: () => projectApi.list(page, size, filter),
     placeholderData: (prev) => prev,
   });
 }

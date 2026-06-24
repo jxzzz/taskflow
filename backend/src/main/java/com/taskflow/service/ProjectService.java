@@ -13,9 +13,10 @@ public interface ProjectService {
     ProjectResponse create(ProjectCreateRequest request, Long currentUserId);
 
     /**
-     * 获取当前用户参与的所有看板（分页）
+     * 获取看板列表（分页），支持 filter 过滤
+     * @param filter my=我参与的, public=公开的, null=全部
      */
-    IPage<ProjectResponse> listMyProjects(int page, int size, Long currentUserId);
+    IPage<ProjectResponse> listMyProjects(int page, int size, String filter, Long currentUserId);
 
     /**
      * 获取看板详情，非成员无法查看

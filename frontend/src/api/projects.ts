@@ -8,9 +8,9 @@ export const projectApi = {
   create: (data: CreateProjectRequest) =>
     client.post<any, Project>('/projects', data),
 
-  /** 查看我参与的项目列表，GET /api/v1/projects */
-  list: (page = 1, size = 20) =>
-    client.get<any, PaginatedResult<Project>>('/projects', { params: { page, size } }),
+  /** 查看项目列表，GET /api/v1/projects?filter=my|public */
+  list: (page = 1, size = 20, filter?: string) =>
+    client.get<any, PaginatedResult<Project>>('/projects', { params: filter ? { page, size, filter } : { page, size } }),
 
   /** 查看项目详情，GET /api/v1/projects/{id} */
   getById: (id: number) =>

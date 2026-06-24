@@ -31,7 +31,7 @@ export default function ProjectListPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
 
-  const { data, isFetching } = useProjects(1, 100);
+  const { data, isFetching } = useProjects(1, 100, 'my');
   const createMutation = useCreateProject();
   const deleteMutation = useDeleteProject();
   const updateMutation = useUpdateProject();
@@ -49,7 +49,7 @@ export default function ProjectListPage() {
 
   return (
     <div>
-      <PageHeader title="项目" subtitle="管理你的项目项目"
+      <PageHeader title="我的项目" subtitle="我创建或加入的项目"
         extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建项目</Button>} />
 
       <Row gutter={[20, 20]}>
@@ -102,7 +102,7 @@ export default function ProjectListPage() {
         <div style={{ textAlign: 'center', padding: 72 }}>
           <div style={{ fontSize: 52, marginBottom: 16, opacity: 0.35 }}>📋</div>
           <div style={{ fontSize: 16, fontWeight: 600, color: '#2b2825', marginBottom: 6 }}>还没有项目</div>
-          <Text style={{ color: 'rgba(43,40,37,0.4)', display: 'block', marginBottom: 22 }}>创建你的第一个项目，开始管理任务</Text>
+          <Text style={{ color: 'rgba(43,40,37,0.4)', display: 'block', marginBottom: 22 }}>创建一个项目，或让团队成员邀请你加入</Text>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建项目</Button>
         </div>
       )}

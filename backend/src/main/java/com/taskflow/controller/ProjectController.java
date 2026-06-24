@@ -29,13 +29,14 @@ public class ProjectController {
         return ApiResponse.success("创建成功", projectService.create(request, currentUserId));
     }
 
-    @Operation(summary = "获取我的看板列表")
+    @Operation(summary = "获取看板列表（支持 filter=my|public）")
     @GetMapping
     public ApiResponse<IPage<ProjectResponse>> list(
             @Parameter(description = "页码") @RequestParam(defaultValue = "1") int page,
-            @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size) {
+            @Parameter(description = "每页大小") @RequestParam(defaultValue = "20") int size,
+            @Parameter(description = "过滤: my=我参与的, public=公开的, 不传=全部") @RequestParam(required = false) String filter) {
         Long currentUserId = getCurrentUserId();
-        return ApiResponse.success(projectService.listMyProjects(page, size, currentUserId));
+        return ApiResponse.success(projectService.listMyProjects(page, size, filter, currentUserId));
     }
 
     @Operation(summary = "获取看板详情")

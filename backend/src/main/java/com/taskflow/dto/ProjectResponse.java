@@ -43,6 +43,9 @@ public class ProjectResponse {
     @Schema(description = "是否公开: 默认false仅自己可见, true所有人可见")
     private Boolean isPublic;
 
+    @Schema(description = "当前用户是否为项目成员")
+    private Boolean isMember;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

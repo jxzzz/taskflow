@@ -66,6 +66,8 @@ export default function ProjectDetailPage() {
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const [taskCreateListId, setTaskCreateListId] = useState<number | undefined>();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const isMember = project?.isMember ?? true; // 旧后端未返回时默认允许操作
+
   const [focusMode, setFocusMode] = useState(false);
 
   // ---- Drag & Drop ----
@@ -159,9 +161,11 @@ export default function ProjectDetailPage() {
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/projects')}>
               返回
             </Button>
-            <Button type="primary" icon={<EditOutlined />} style={{ borderRadius: 50 }}>
-              编辑
-            </Button>
+            {isMember && (
+              <Button type="primary" icon={<EditOutlined />} style={{ borderRadius: 50 }}>
+                编辑
+              </Button>
+            )}
           </Space>
         }
       />
@@ -331,7 +335,7 @@ export default function ProjectDetailPage() {
       {/* ====== Kanban View ====== */}
       {viewMode === 'kanban' && (
         <DndContext
-          sensors={sensors}
+          sensors={isMember ? sensors : []}
           collisionDetection={collisionDetection}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
@@ -386,10 +390,10 @@ export default function ProjectDetailPage() {
                     onTaskDeleted={(taskId) => {
                       if (taskId === selectedTaskId) setSelectedTaskId(null);
                     }}
-                    onAddTask={(listId) => {
+                    onAddTask={isMember ? (listId) => {
                       setTaskCreateListId(listId);
                       setTaskCreateOpen(true);
-                    }}
+                    } : undefined}
                   />
                 ))}
               </SortableContext>
@@ -405,16 +409,16 @@ export default function ProjectDetailPage() {
                   onTaskDeleted={(taskId) => {
                     if (taskId === selectedTaskId) setSelectedTaskId(null);
                   }}
-                  onAddTask={(listId) => {
+                  onAddTask={isMember ? (listId) => {
                     setTaskCreateListId(listId);
                     setTaskCreateOpen(true);
-                  }}
+                  } : undefined}
                 />
               ))
             )}
 
-            {/* Add list — hidden in focus mode */}
-            {!focusMode &&
+            {/* Add list — hidden in focus mode or view-only */}
+            {!focusMode && isMember &&
               (addingList ? (
                 <div
                   style={{

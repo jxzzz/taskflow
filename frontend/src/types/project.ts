@@ -11,6 +11,7 @@ export interface Project {
   listCount: number;
   projectUrl?: string;
   isPublic: boolean;
+  isMember: boolean;
   createTime: string;
   /** 看板列表（含卡片），仅详情接口返回 */
   lists?: TaskListSummary[];

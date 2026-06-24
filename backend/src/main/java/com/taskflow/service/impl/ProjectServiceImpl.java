@@ -68,11 +68,11 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 3. 重新查询以获取数据库生成的 createTime
         project = projectMapper.selectById(project.getId());
-        return buildResponse(project);
+        return buildResponse(project, currentUserId);
     }
 
     @Override
-    public IPage<ProjectResponse> listMyProjects(int page, int size, Long currentUserId) {
+    public IPage<ProjectResponse> listMyProjects(int page, int size, String filter, Long currentUserId) {
         // 查询当前用户参与的所有 project_id
         List<ProjectMember> memberships = projectMemberMapper.selectList(
                 new LambdaQueryWrapper<ProjectMember>()
@@ -81,18 +81,36 @@ public class ProjectServiceImpl implements ProjectService {
                 .map(ProjectMember::getProjectId)
                 .collect(Collectors.toSet());
 
-        // 分页查询：用户参与的 OR 公开的
         Page<Project> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Project> query = new LambdaQueryWrapper<>();
-        if (!memberProjectIds.isEmpty()) {
-            query.and(w -> w.in(Project::getId, memberProjectIds).or().eq(Project::getIsPublic, true));
-        } else {
+
+        if ("my".equals(filter)) {
+            // 只查我参与的
+            if (memberProjectIds.isEmpty()) {
+                IPage<ProjectResponse> emptyPage = new Page<>(page, size);
+                emptyPage.setTotal(0);
+                emptyPage.setRecords(Collections.emptyList());
+                return emptyPage;
+            }
+            query.in(Project::getId, memberProjectIds);
+        } else if ("public".equals(filter)) {
+            // 只查公开且非参与的
             query.eq(Project::getIsPublic, true);
+            if (!memberProjectIds.isEmpty()) {
+                query.notIn(Project::getId, memberProjectIds);
+            }
+        } else {
+            // 全部：我参与的 OR 公开的
+            if (!memberProjectIds.isEmpty()) {
+                query.and(w -> w.in(Project::getId, memberProjectIds).or().eq(Project::getIsPublic, true));
+            } else {
+                query.eq(Project::getIsPublic, true);
+            }
         }
+
         query.orderByDesc(Project::getCreateTime);
         IPage<Project> projectPage = projectMapper.selectPage(pageParam, query);
-
-        return projectPage.convert(this::buildResponse);
+        return projectPage.convert(p -> buildResponse(p, currentUserId));
     }
 
     @Override
@@ -125,7 +143,7 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         projectMapper.updateById(project);
-        return buildResponse(project);
+        return buildResponse(project, currentUserId);
     }
 
     @Override
@@ -227,7 +245,7 @@ public class ProjectServiceImpl implements ProjectService {
     /**
      * 构建 ProjectResponse，包含成员数量和列表数量
      */
-    private ProjectResponse buildResponse(Project project) {
+    private ProjectResponse buildResponse(Project project, Long currentUserId) {
         // 查询 owner 用户名
         User owner = userMapper.selectById(project.getOwnerId());
         String ownerName = owner != null ? owner.getUsername() : null;
@@ -236,6 +254,9 @@ public class ProjectServiceImpl implements ProjectService {
         Long memberCount = projectMemberMapper.selectCount(
                 new LambdaQueryWrapper<ProjectMember>()
                         .eq(ProjectMember::getProjectId, project.getId()));
+
+        // 当前用户是否为成员
+        boolean isMember = currentUserId != null && isMember(project.getId(), currentUserId);
 
         // 统计列表数量
         Long listCount = taskListMapper.selectCount(
@@ -248,6 +269,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .description(project.getDescription())
                 .projectUrl(project.getProjectUrl())
                 .isPublic(project.getIsPublic() != null ? project.getIsPublic() : false)
+                .isMember(isMember)
                 .ownerId(project.getOwnerId())
                 .ownerName(ownerName)
                 .memberCount(memberCount != null ? memberCount.intValue() : 0)
