@@ -4,80 +4,75 @@
 
 ```
 TaskFlow/
-├── docker-compose.yml              # MySQL + Redis + RabbitMQ + MinIO + Backend
-├── backend/                        # Spring Boot 3.x 项目
-│   ├── pom.xml                     # Maven 配置
-│   ├── mvnw / mvnw.cmd             # Maven Wrapper（无需装 Maven）
-│   ├── Dockerfile                  # 多阶段构建
-│   └── src/main/java/com/taskflow/
-│       ├── TaskFlowApplication.java
-│       ├── config/                 # 6 个配置类
-│       │   ├── MyBatisPlusConfig.java
-│       │   ├── SecurityConfig.java
-│       │   ├── RedisConfig.java
-│       │   ├── RabbitMQConfig.java
-│       │   ├── MinioConfig.java
-│       │   └── WebMvcConfig.java
-│       ├── controller/             # 3 个控制器
-│       │   ├── AuthController.java     # 注册、登录
-│       │   ├── UserController.java     # 用户 CRUD
-│       │   └── FileController.java     # 文件上传
-│       ├── service/                # 业务层
-│       │   ├── UserService.java
-│       │   └── impl/UserServiceImpl.java
-│       ├── mapper/                 # MyBatis-Plus 数据访问
-│       │   ├── UserMapper.java
-│       │   ├── ProjectMapper.java
-│       │   ├── ProjectMemberMapper.java
-│       │   ├── TaskListMapper.java
-│       │   └── TaskMapper.java
-│       ├── entity/                 # 5 个实体类
-│       │   ├── User.java
-│       │   ├── Project.java
-│       │   ├── ProjectMember.java
-│       │   ├── TaskList.java
-│       │   └── Task.java
-│       ├── dto/                    # 数据传输对象
-│       │   ├── ApiResponse.java        # 统一响应包装
-│       │   ├── UserRegisterRequest.java
-│       │   ├── UserLoginRequest.java
-│       │   ├── UserUpdateRequest.java
-│       │   ├── UserResponse.java
-│       │   └── LoginResponse.java
-│       ├── enums/                  # 枚举
-│       │   └── ProjectMemberRole.java
-│       ├── exception/              # 异常处理
-│       │   ├── BusinessException.java
-│       │   └── GlobalExceptionHandler.java
-│       ├── security/               # 安全相关
-│       │   └── JwtAuthenticationFilter.java
-│       └── utils/                  # 工具类
-│           ├── JwtUtils.java
-│           └── MinioUtils.java
-├── docker/mysql/init/init.sql     # 数据库初始化脚本
-└── frontend/                       # 前端占位（二期）
+├── docker-compose.yml                 # 本地开发：Docker Hub + 硬编码密码
+├── docker-compose.prod.yml            # 生产（国际）：Docker Hub + .env
+├── docker-compose.al.prod.yml         # 生产（阿里云）：ACR VPC + .env
+├── .env.example                       # 生产环境变量模板
+├── .github/workflows/
+│   ├── build-push.yml                 # 自动构建 + 推送 ACR
+│   └── deploy.yml                     # 自动部署到服务器
+├── docker/mysql/init/init.sql         # 仅建库（表结构由 Flyway 管理）
+└── backend/                           # Spring Boot 3.4.6 + Java 21
+    ├── Dockerfile                     # 多阶段构建
+    ├── pom.xml
+    └── src/main/
+        ├── java/com/taskflow/
+        │   ├── config/                # 6 个配置类
+        │   │   ├── SecurityConfig.java      # Spring Security + JWT
+        │   │   ├── MyBatisPlusConfig.java   # 分页插件
+        │   │   ├── RedisConfig.java         # 序列化
+        │   │   ├── RabbitMQConfig.java      # 死信 + 重试
+        │   │   ├── MinioConfig.java         # 对象存储
+        │   │   └── WebMvcConfig.java        # CORS
+        │   ├── controller/
+        │   ├── service/ + impl/
+        │   ├── mapper/
+        │   ├── entity/
+        │   ├── dto/
+        │   ├── enums/
+        │   ├── exception/
+        │   ├── listener/              # MQ 消费者
+        │   ├── security/
+        │   └── utils/
+        └── resources/
+            ├── application.yml        # 默认配置（Docker 环境）
+            ├── application-dev.yml    # 本地 IDE 开发
+            └── db/migration/          # Flyway 迁移脚本
+                ├── V1__init_schema.sql
+                └── V2__add_task_priority.sql
 ```
+
+---
+
+## 技术栈
+
+| 层 | 技术 |
+|---|---|
+| 框架 | Spring Boot 3.4.6 + Java 21 |
+| ORM | MyBatis-Plus 3.5.5 |
+| 连接池 | Druid 1.2.24（监控 + SQL 防护） |
+| 数据库迁移 | Flyway |
+| 认证 | Spring Security + JWT（无状态） |
+| 缓存 | Redis 7（Lettuce 客户端） |
+| 消息队列 | RabbitMQ 4.0（死信 + 重试 + 手动确认） |
+| 对象存储 | MinIO |
+| API 文档 | SpringDoc 2.7.0（Swagger UI） |
+| 构建 | Maven + Maven Wrapper |
+| CI/CD | GitHub Actions → 阿里云 ACR → ECS |
+| 工具 | Lombok + Hutool |
 
 ---
 
 ## 第一步：数据库搭建 ✅
 
 - MySQL 8.0 Docker 容器启动
-- 数据库 `taskflow_db` 创建
-- 5 张基础表：`user`、`project`、`project_member`、`task_list`、`task`
+- 数据库 `taskflow_db`
+- 5 张表：`user`、`project`、`project_member`、`task_list`、`task`
+- Flyway 版本化管理表结构变更
 
 ## 第二步：后端项目搭建 ✅
 
-- **框架**: Spring Boot 3.4.x + Java 21
-- **ORM**: MyBatis-Plus 3.5.5
-- **认证**: Spring Security + JWT（无状态）
-- **数据库**: MySQL 8.0（Docker）
-- **缓存**: Redis 7（Docker）
-- **消息队列**: RabbitMQ 4.0（Docker）
-- **对象存储**: MinIO（Docker）
-- **API 文档**: Knife4j（Swagger 增强版）
-- **工具**: Lombok + Hutool
-- **构建**: Maven + Maven Wrapper
+应用层、基础设施层全部就绪，6 个配置类覆盖核心中间件。
 
 ### 已实现接口
 
@@ -85,55 +80,118 @@ TaskFlow/
 |---|---|---|---|
 | POST | `/api/v1/auth/register` | 用户注册 | 无需 |
 | POST | `/api/v1/auth/login` | 用户登录，返回 JWT | 无需 |
-| GET | `/api/v1/users` | 用户列表（分页） | Bearer Token |
+| GET | `/api/v1/users` | 用户列表（分页）| Bearer Token |
 | GET | `/api/v1/users/{id}` | 用户详情 | Bearer Token |
 | PUT | `/api/v1/users/{id}` | 更新用户 | Bearer Token |
 | DELETE | `/api/v1/users/{id}` | 删除用户 | Bearer Token |
-| POST | `/api/v1/files/upload` | 文件上传（MinIO） | Bearer Token |
+| POST | `/api/v1/files/upload` | 文件上传（MinIO）| Bearer Token |
 
-### 运行中的服务
+### 服务端口
 
-| 服务 | 端口 | 说明 |
+| 服务 | 端口 | 管理地址 |
 |---|---|---|
-| taskflow-backend | 8080 | Spring Boot 应用 |
-| taskflow-mysql | 3306 | MySQL 数据库 |
-| taskflow-redis | 6379 | Redis 缓存 |
-| taskflow-rabbitmq | 5672 / 15672 | 消息队列 / 管理后台 |
-| taskflow-minio | 9000 / 9001 | 对象存储 / 管理后台 |
+| taskflow-backend | 8080 | http://localhost:8080/swagger-ui/index.html |
+| taskflow-mysql | 3306 | - |
+| taskflow-redis | 6379 | - |
+| taskflow-rabbitmq | 5672 | http://localhost:15672（admin / admin123456） |
+| taskflow-minio | 9000 | http://localhost:9001（minioadmin / minioadmin123） |
+| Druid 监控 | 8080 | http://localhost:8080/druid/（admin / druid123456） |
 
-### 管理地址
+---
 
-- **API 文档**: http://localhost:8080/doc.html
-- **RabbitMQ 控制台**: http://localhost:15672（admin / admin123456）
-- **MinIO 控制台**: http://localhost:9001（minioadmin / minioadmin123）
+## 第三步：CI/CD 部署流水线 ✅
+
+### 镜像流程
+
+```
+本地 → git push → GitHub
+                     │
+                     ▼
+              Build & Push（自动）
+                │
+                ├── checkout 代码
+                ├── docker build（./backend/Dockerfile）
+                ├── docker push → 阿里云 ACR 公网
+                │
+                ▼
+              Deploy（自动，build 成功后触发）
+                │
+                ├── SSH 到 ECS
+                ├── docker pull（ACR VPC 内网）
+                └── docker compose -f docker-compose.al.prod.yml up -d
+```
+
+### GitHub Actions 配置
+
+| Secret | 说明 |
+|---|---|
+| `ACR_USERNAME` | 阿里云 ACR 登录用户名 |
+| `ACR_PASSWORD` | 阿里云 ACR 登录密码 |
+| `SERVER_HOST` | ECS 公网 IP |
+| `SERVER_USER` | SSH 用户名（root） |
+| `SERVER_SSH_KEY` | SSH 私钥完整内容（含头尾） |
+
+### 服务器部署步骤
+
+```bash
+# === 首次部署 ===
+
+# 1. 准备工作目录
+mkdir -p ~/code/taskflow/docker/mysql/init
+
+# 2. 上传部署文件
+scp docker-compose.al.prod.yml root@<IP>:~/code/taskflow/
+scp .env.example root@<IP>:~/code/taskflow/.env
+scp docker/mysql/init/init.sql root@<IP>:~/code/taskflow/docker/mysql/init/
+
+# 3. 编辑密码
+vim ~/code/taskflow/.env
+
+# 4. 启动
+cd ~/code/taskflow
+docker compose -f docker-compose.al.prod.yml up -d
+
+# 5. 验证
+curl http://localhost:8080/swagger-ui/index.html
+```
+
+```bash
+# === 后续自动更新（每次 push 后自动执行，无需手动操作）===
+
+cd ~/code/taskflow
+docker pull crpi-ytlg6tfv9wxn5mfu-vpc.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
+docker compose -f docker-compose.al.prod.yml up -d --no-deps backend
+docker image prune -f
+```
 
 ### 常用命令
 
 ```bash
-# 启动全部服务
+# 本地开发启动
 docker compose up -d
-
-# 停止全部服务
-docker compose down
-
+# 重新构建后端
+docker compose up -d --build backend
 # 查看日志
 docker compose logs -f backend
+# 停止
+docker compose down
 
-# 重启后端（改代码后）
-docker compose up -d --build backend
-
-# 在本地 IDE 开发（需要 dev profile）
+# IDE 开发（dev profile，连 localhost）
 cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# 数据库变更：新建 Flyway 迁移脚本
+# backend/src/main/resources/db/migration/V<N>__<描述>.sql
+# 提交后部署时自动执行
 ```
 
 ---
 
-## 第三步：待办
+## 第四步：待办
 
 - [ ] 继续编写 Project / Task 相关业务接口
 - [ ] 前端项目搭建（React / Vue / Next.js）
 
-## 第四步：微服务拆分（二期）
+## 第五步：微服务拆分（二期）
 
 ```
 Gateway (Spring Cloud Gateway)
@@ -144,9 +202,3 @@ Gateway (Spring Cloud Gateway)
 
 Nacos + OpenFeign + Spring Cloud LoadBalancer
 ```
-
-## 第五步：部署上线
-
-- [ ] 服务器选型
-- [ ] CI/CD 流水线
-- [ ] 域名 + HTTPS

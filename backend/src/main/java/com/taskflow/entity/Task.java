@@ -25,6 +25,18 @@ public class Task {
 
     private String title;
 
+    /** 优先级: 0-普通, 1-紧急, 2-非常紧急 */
+    private Integer priority;
+
+    /** 截止日期 */
+    private LocalDateTime dueDate;
+
+    /** 封面颜色(hex) */
+    private String coverColor;
+
+    /** 封面图片URL */
+    private String coverImage;
+
     private String content;
 
     private Long assigneeId;
