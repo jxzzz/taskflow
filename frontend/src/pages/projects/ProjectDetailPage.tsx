@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Button, Space, Tag, Spin, Typography, Input, Popconfirm, Popover,
-  Select, Empty, Tooltip, Drawer, Descriptions, Skeleton,
+  Select, Empty, Tooltip, Drawer, Descriptions, Skeleton, message,
 } from 'antd';
 import {
   ArrowLeftOutlined, EditOutlined, TeamOutlined, ClockCircleOutlined,
@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import PageHeader from '@/components/common/PageHeader';
+import EmptyKanban from '@/components/common/EmptyKanban';
 import { useProject } from '@/hooks/useProjects';
 import { useCreateTaskList, useDeleteTaskList } from '@/hooks/useTaskLists';
 import { useCreateTask, useDeleteTask, useMoveTask, useTaskDetail } from '@/hooks/useTasks';
@@ -280,6 +281,35 @@ export default function ProjectDetailPage() {
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const { data: taskDetail, isFetching: taskLoading } = useTaskDetail(selectedTaskId);
 
+  /** Quick-start: create a default "To Do" list so the user can begin adding tasks */
+  const handleCreateFirstList = useCallback(() => {
+    if (createList.isPending) return;
+    createList.mutate('To Do', {
+      onSuccess: () => {
+        message.success('列表已创建，开始添加任务吧 ✨');
+      },
+    });
+  }, [createList]);
+
+  const lists = project?.lists || [];
+  const listCount = lists.length;
+
+  /** Keyboard shortcut: N to create first list */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        if (listCount === 0 && !addingList) {
+          handleCreateFirstList();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [listCount, addingList, handleCreateFirstList]);
+
   if (isLoading) return <div style={{ textAlign: 'center', padding: 120 }}><Spin /></div>;
   if (!project) {
     return (
@@ -289,8 +319,6 @@ export default function ProjectDetailPage() {
       </div>
     );
   }
-
-  const lists = project.lists || [];
 
   const handleAddList = () => {
     if (!newListName.trim()) return;
@@ -387,12 +415,9 @@ export default function ProjectDetailPage() {
           </Button>
         )}
 
-        {/* Empty state */}
+        {/* Empty state — shown when no lists exist */}
         {lists.length === 0 && !addingList && (
-          <Empty
-            description="还没有列表，点击「添加列表」开始"
-            style={{ flex: 1, marginTop: 80 }}
-          />
+          <EmptyKanban onCreateTask={handleCreateFirstList} />
         )}
       </div>
 

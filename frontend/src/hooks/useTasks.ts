@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { taskApi } from '@/api/tasks';
-import type { CreateTaskRequest, UpdateTaskRequest, MoveTaskRequest, ReorderItem } from '@/types/task';
+import type { CreateTaskRequest, UpdateTaskRequest, MoveTaskRequest } from '@/types/task';
 import { App } from 'antd';
 
 /** 卡片详情 */
@@ -36,8 +36,7 @@ export function useUpdateTask() {
   const { message } = App.useApp();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: UpdateTaskRequest }) =>
-      taskApi.update(id, data),
+    mutationFn: ({ id, data }: { id: number; data: UpdateTaskRequest }) => taskApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
@@ -69,8 +68,7 @@ export function useMoveTask() {
   const { message } = App.useApp();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: MoveTaskRequest }) =>
-      taskApi.move(id, data),
+    mutationFn: ({ id, data }: { id: number; data: MoveTaskRequest }) => taskApi.move(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },

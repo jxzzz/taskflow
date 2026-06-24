@@ -223,3 +223,89 @@ h4 { font-size: 1.05rem; }
 
 /* Progress */
 .ant-progress-bg { background: var(--color-lavender) !important; }
+
+/* ===== Empty Kanban — Rocket Illustration & Animations ===== */
+
+/* Rocket group — gentle floating */
+.rocket-group {
+  animation: floatRocket 3.6s ease-in-out infinite;
+}
+
+@keyframes floatRocket {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Rocket glow pulse */
+.rocket-glow {
+  animation: pulseGlow 3.2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 0.7; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+
+/* Floating particles */
+.rocket-particle {
+  animation: driftParticle 3.8s ease-in-out infinite;
+}
+
+@keyframes driftParticle {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.6); }
+  20% { opacity: 0.7; }
+  50% { opacity: 1; transform: translateY(-14px) scale(1.1); }
+  80% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-24px) scale(0.5); }
+}
+
+/* Flame flicker */
+.rocket-flame-group {
+  animation: flickerFlame 0.15s ease-in-out infinite alternate;
+}
+
+@keyframes flickerFlame {
+  0% { transform: translateX(-50%) scaleY(1) scaleX(1); }
+  25% { transform: translateX(-50%) scaleY(1.08) scaleX(0.94); }
+  50% { transform: translateX(-50%) scaleY(0.94) scaleX(1.06); }
+  75% { transform: translateX(-50%) scaleY(1.04) scaleX(0.96); }
+  100% { transform: translateX(-50%) scaleY(0.96) scaleX(1.04); }
+}
+
+/* Flame layers individual animations */
+.flame-outer {
+  animation: flameOuter 0.18s ease-in-out infinite alternate;
+}
+
+@keyframes flameOuter {
+  0% { transform: scaleY(1) scaleX(1); opacity: 0.85; }
+  100% { transform: scaleY(1.1) scaleX(0.92); opacity: 1; }
+}
+
+.flame-inner {
+  animation: flameInner 0.14s ease-in-out infinite alternate;
+}
+
+@keyframes flameInner {
+  0% { transform: scaleY(1) scaleX(1); }
+  100% { transform: scaleY(1.06) scaleX(0.96); }
+}
+
+.flame-core {
+  animation: flameCore 0.12s ease-in-out infinite alternate;
+}
+
+@keyframes flameCore {
+  0% { transform: scaleY(1); opacity: 0.9; }
+  100% { transform: scaleY(1.04); opacity: 1; }
+}
+
+/* CTA button glow pulse */
+.empty-kanban-cta {
+  animation: ctaGlow 3s ease-in-out infinite;
+}
+
+@keyframes ctaGlow {
+  0%, 100% { box-shadow: 0 2px 8px rgba(74, 133, 217, 0.25), 0 6px 24px rgba(74, 133, 217, 0.18), 0 0 0 4px rgba(74, 133, 217, 0.06); }
+  50% { box-shadow: 0 2px 12px rgba(74, 133, 217, 0.35), 0 8px 32px rgba(74, 133, 217, 0.24), 0 0 0 8px rgba(74, 133, 217, 0.1); }
+}
