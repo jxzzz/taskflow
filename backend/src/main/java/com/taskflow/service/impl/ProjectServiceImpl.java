@@ -57,6 +57,8 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
         projectMemberMapper.insert(member);
 
+        // 3. 重新查询以获取数据库生成的 createTime
+        project = projectMapper.selectById(project.getId());
         return buildResponse(project);
     }
 

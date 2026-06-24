@@ -85,6 +85,8 @@ services:
     restart: always
 
   backend:
+    profiles:
+      - docker  # 只在显式指定 profile 时启动：docker compose --profile docker up -d
     build:
       context: ./backend
       dockerfile: Dockerfile
