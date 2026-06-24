@@ -139,7 +139,8 @@ export function useKanbanDrag({ projectId, lists, onDragStartClosesDrawer }: Use
         const newIndex = lists.findIndex((l) => `list-${l.id}` === over.id);
         if (oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex) {
           const items = computeSortOrders(lists, oldIndex, newIndex);
-          taskListApi.reorder(projectId, items)
+          taskListApi
+            .reorder(projectId, items)
             .catch(() => {
               if (previousCacheRef.current)
                 queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
@@ -184,11 +185,10 @@ export function useKanbanDrag({ projectId, lists, onDragStartClosesDrawer }: Use
           { id: activeCard.id, data: { targetListId, sortOrder: targetIndex * 1000 } },
           {
             onError: () => {
-              if (previousCacheRef.current)
+              if (previousCacheRef.current) {
                 queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
-              message.error('移动失败');
+              }
             },
-            onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
           },
         );
         return;
@@ -220,7 +220,8 @@ export function useKanbanDrag({ projectId, lists, onDragStartClosesDrawer }: Use
         };
       });
 
-      taskApi.reorder(sourceListId, items)
+      taskApi
+        .reorder(sourceListId, items)
         .catch(() => {
           if (previousCacheRef.current)
             queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
