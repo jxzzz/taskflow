@@ -49,6 +49,15 @@ spring:
       # Spring 监控
       aop-patterns: com.taskflow.service.*,com.taskflow.controller.*
 
+  flyway:
+    # 已有表时也正常运行，从当前版本开始追踪
+    baseline-on-migrate: true
+    baseline-version: 1
+    # 迁移脚本位置
+    locations: classpath:db/migration
+    # 关闭生产环境自动迁移（建议在 CI 或手动执行）
+    # enabled: true
+
   data:
     redis:
       host: redis
