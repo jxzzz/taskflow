@@ -66,7 +66,7 @@ export default function ProjectDetailPage() {
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const [taskCreateListId, setTaskCreateListId] = useState<number | undefined>();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
-  const [focusMode, setFocusMode] = useState(true);
+  const [focusMode, setFocusMode] = useState(false);
 
   // ---- Drag & Drop ----
   const {
@@ -196,7 +196,11 @@ export default function ProjectDetailPage() {
             gap: 4,
           }}
         >
-          {project.isPublic ? <GlobalOutlined style={{ fontSize: 10 }} /> : <LockOutlined style={{ fontSize: 10 }} />}
+          {project.isPublic ? (
+            <GlobalOutlined style={{ fontSize: 10 }} />
+          ) : (
+            <LockOutlined style={{ fontSize: 10 }} />
+          )}
           {project.isPublic ? '公开' : '私有'}
         </Tag>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
@@ -256,7 +260,14 @@ export default function ProjectDetailPage() {
             }}
           />
 
-          <span style={{ width: 1, height: 20, background: 'var(--color-border-default)', flexShrink: 0 }} />
+          <span
+            style={{
+              width: 1,
+              height: 20,
+              background: 'var(--color-border-default)',
+              flexShrink: 0,
+            }}
+          />
 
           {/* Focus toggle */}
           <button
@@ -403,112 +414,113 @@ export default function ProjectDetailPage() {
             )}
 
             {/* Add list — hidden in focus mode */}
-            {!focusMode && (addingList ? (
-              <div
-                style={{
-                  flex: '1 1 0',
-                  minWidth: 260,
-                  maxWidth: 380,
-                  background: 'var(--color-bg-elevated)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '2px solid var(--color-lavender-soft)',
-                  padding: 16,
-                  boxShadow: 'var(--shadow-card)',
-                  animation: 'addListExpand 0.25s cubic-bezier(0.19, 1, 0.22, 1)',
-                }}
-              >
-                <Input
-                  autoFocus
-                  size="small"
-                  placeholder="输入列表名称，回车创建"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  onPressEnter={handleAddList}
-                  style={{ marginBottom: 10, borderRadius: 'var(--radius-sm)' }}
-                />
-                <Space size={6}>
-                  <Button
-                    size="small"
-                    type="primary"
-                    onClick={handleAddList}
-                    loading={createList.isPending}
-                    style={{ borderRadius: 'var(--radius-xs)' }}
-                  >
-                    创建
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      setAddingList(false);
-                      setNewListName('');
-                    }}
-                    style={{ borderRadius: 'var(--radius-xs)' }}
-                  >
-                    取消
-                  </Button>
-                </Space>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setAddingList(true)}
-                style={{
-                  flex: '1 1 0',
-                  minWidth: 160,
-                  maxWidth: 380,
-                  height: '100%',
-                  minHeight: 120,
-                  borderRadius: 'var(--radius-lg)',
-                  border: '2px dashed rgba(155, 151, 212, 0.18)',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
-                  animation: 'addListFadeIn 0.4s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.4)';
-                  e.currentTarget.style.background = 'rgba(155, 151, 212, 0.03)';
-                  e.currentTarget.style.boxShadow = '0 0 0 4px rgba(155, 151, 212, 0.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.18)';
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <span
+            {!focusMode &&
+              (addingList ? (
+                <div
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: 'rgba(155, 151, 212, 0.10)',
+                    flex: '1 1 0',
+                    minWidth: 260,
+                    maxWidth: 380,
+                    background: 'var(--color-bg-elevated)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '2px solid var(--color-lavender-soft)',
+                    padding: 16,
+                    boxShadow: 'var(--shadow-card)',
+                    animation: 'addListExpand 0.25s cubic-bezier(0.19, 1, 0.22, 1)',
+                  }}
+                >
+                  <Input
+                    autoFocus
+                    size="small"
+                    placeholder="输入列表名称，回车创建"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    onPressEnter={handleAddList}
+                    style={{ marginBottom: 10, borderRadius: 'var(--radius-sm)' }}
+                  />
+                  <Space size={6}>
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={handleAddList}
+                      loading={createList.isPending}
+                      style={{ borderRadius: 'var(--radius-xs)' }}
+                    >
+                      创建
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        setAddingList(false);
+                        setNewListName('');
+                      }}
+                      style={{ borderRadius: 'var(--radius-xs)' }}
+                    >
+                      取消
+                    </Button>
+                  </Space>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAddingList(true)}
+                  style={{
+                    flex: '1 1 0',
+                    minWidth: 160,
+                    maxWidth: 380,
+                    height: '100%',
+                    minHeight: 120,
+                    borderRadius: 'var(--radius-lg)',
+                    border: '2px dashed rgba(155, 151, 212, 0.18)',
+                    background: 'transparent',
+                    cursor: 'pointer',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#9b97d4',
-                    fontSize: 16,
-                    transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    gap: 8,
+                    transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
+                    animation: 'addListFadeIn 0.4s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.4)';
+                    e.currentTarget.style.background = 'rgba(155, 151, 212, 0.03)';
+                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(155, 151, 212, 0.05)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.18)';
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.boxShadow = 'none';
                   }}
                 >
-                  <PlusOutlined />
-                </span>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    color: 'rgba(155, 151, 212, 0.5)',
-                    fontWeight: 500,
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
-                  新建列表
-                </Text>
-              </button>
-            ))}
+                  <span
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: '50%',
+                      background: 'rgba(155, 151, 212, 0.10)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9b97d4',
+                      fontSize: 16,
+                      transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    }}
+                  >
+                    <PlusOutlined />
+                  </span>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: 'rgba(155, 151, 212, 0.5)',
+                      fontWeight: 500,
+                      fontFamily: "'DM Sans', sans-serif",
+                    }}
+                  >
+                    新建列表
+                  </Text>
+                </button>
+              ))}
 
             {/* Empty state */}
             {lists.length === 0 && !addingList && <EmptyKanban onBootstrap={handleBootstrap} />}
@@ -532,13 +544,12 @@ export default function ProjectDetailPage() {
       )}
 
       {/* ====== List View ====== */}
-      {viewMode === 'list' && (
-        listCount > 0 ? (
+      {viewMode === 'list' &&
+        (listCount > 0 ? (
           <TaskListView lists={lists} onTaskClick={(taskId) => setSelectedTaskId(taskId)} />
         ) : (
           <EmptyKanban onBootstrap={handleBootstrap} />
-        )
-      )}
+        ))}
 
       {/* Task create modal */}
       <TaskCreateModal

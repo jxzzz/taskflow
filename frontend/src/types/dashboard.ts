@@ -7,6 +7,7 @@ export interface ProjectPreview {
   memberCount: number;
   listCount: number;
   taskCount: number;
+  isPublic: boolean;
   createTime: string;
 }
 
@@ -16,4 +17,6 @@ export interface DashboardData {
   totalUsers: number;
   totalTasks: number;
   projects: ProjectPreview[];
+  totalPublicProjects: number;
+  publicProjects: ProjectPreview[];
 }

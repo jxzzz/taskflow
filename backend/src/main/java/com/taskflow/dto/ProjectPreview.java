@@ -36,6 +36,9 @@ public class ProjectPreview {
     @Schema(description = "卡片总数")
     private Integer taskCount;
 
+    @Schema(description = "是否公开")
+    private Boolean isPublic;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 }

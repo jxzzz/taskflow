@@ -68,11 +68,28 @@ public class DashboardServiceImpl implements DashboardService {
                 .mapToLong(p -> p.getTaskCount() != null ? p.getTaskCount() : 0)
                 .sum();
 
+        // 5. 公开项目（排除已参与的）
+        List<Project> publicProjects = projectMapper.selectList(
+                new LambdaQueryWrapper<Project>()
+                        .eq(Project::getIsPublic, true)
+                        .notIn(!projectIds.isEmpty(), Project::getId, projectIds)
+                        .orderByDesc(Project::getCreateTime)
+                        .last("LIMIT 6"));
+        List<ProjectPreview> publicPreviews = publicProjects.stream()
+                .map(this::buildPreview)
+                .collect(Collectors.toList());
+        long totalPublicProjects = projectMapper.selectCount(
+                new LambdaQueryWrapper<Project>()
+                        .eq(Project::getIsPublic, true)
+                        .notIn(!projectIds.isEmpty(), Project::getId, projectIds));
+
         return DashboardResponse.builder()
                 .totalProjects(totalProjects)
                 .totalUsers(totalUsers)
                 .totalTasks(totalTasks)
                 .projects(projectPreviews)
+                .totalPublicProjects(totalPublicProjects)
+                .publicProjects(publicPreviews)
                 .build();
     }
 
@@ -114,6 +131,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .memberCount(Math.toIntExact(memberCount))
                 .listCount(listCount)
                 .taskCount(taskCount)
+                .isPublic(project.getIsPublic() != null ? project.getIsPublic() : false)
                 .createTime(project.getCreateTime())
                 .build();
     }

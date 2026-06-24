@@ -26,4 +26,10 @@ public class DashboardResponse {
 
     @Schema(description = "我的项目预览列表")
     private List<ProjectPreview> projects;
+
+    @Schema(description = "公开项目总数")
+    private Long totalPublicProjects;
+
+    @Schema(description = "公开项目预览列表（不包含已参与的）")
+    private List<ProjectPreview> publicProjects;
 }

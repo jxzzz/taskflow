@@ -335,7 +335,83 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {/* Quick Action FAB with radial menu */}
+      {/* Public projects */}
+      {data?.publicProjects && data.publicProjects.length > 0 && (
+        <div style={{ marginTop: 40 }}>
+          <div
+            style={{
+              marginBottom: 20,
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Title
+              level={5}
+              style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, margin: 0 }}
+            >
+              发现项目
+            </Title>
+            <span style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>
+              {data.totalPublicProjects} 个公开项目
+            </span>
+          </div>
+
+          <Row gutter={[16, 16]}>
+            {data.publicProjects.map((p) => (
+              <Col xs={24} sm={12} md={8} key={p.id}>
+                <Link to={`/projects/${p.id}`} style={{ textDecoration: 'none' }}>
+                  <div
+                    style={{
+                      background: 'var(--color-bg-elevated)',
+                      borderRadius: 'var(--radius-lg)',
+                      border: '1px solid var(--color-border-subtle)',
+                      padding: '20px 22px',
+                      cursor: 'pointer',
+                      transition: 'all var(--duration-normal) var(--ease-out-expo)',
+                      boxShadow: 'var(--shadow-xs)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+                      e.currentTarget.style.borderColor = 'var(--color-border-default)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
+                      e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <Text strong style={{ fontSize: 14, color: '#2b2825', fontFamily: "'DM Sans', sans-serif" }}>
+                        {p.name}
+                      </Text>
+                      <ArrowRightOutlined style={{ color: 'var(--color-ink-disabled)', fontSize: 12, opacity: 0 }} className="pub-arrow" />
+                    </div>
+                    {p.description && (
+                      <Text style={{ fontSize: 12, color: 'var(--color-ink-tertiary)', lineHeight: 1.5, display: 'block', marginBottom: 10 }}>
+                        {p.description.slice(0, 60)}{p.description.length > 60 ? '…' : ''}
+                      </Text>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <Tag style={{ margin: 0, background: 'rgba(155,151,212,0.08)', color: '#6b67a8', border: 'none', fontSize: 10 }}>
+                        {p.ownerName}
+                      </Tag>
+                    </div>
+                  </div>
+                </Link>
+              </Col>
+            ))}
+          </Row>
+
+          <style>{`
+            .pub-arrow { transition: opacity 0.15s ease; }
+            *:hover > .pub-arrow { opacity: 1 !important; }
+          `}</style>
+        </div>
+      )}
+
+      {/* Quick Action FAB */}
       <QuickActionFab items={quickActionItems} />
 
       {/* Create project modal */}
