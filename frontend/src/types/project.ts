@@ -1,3 +1,5 @@
+import type { TaskListSummary } from './task';
+
 /** 项目信息，匹配 ProjectResponse.java */
 export interface Project {
   id: number;
@@ -8,6 +10,8 @@ export interface Project {
   memberCount: number;
   listCount: number;
   createTime: string;
+  /** 看板列表（含卡片），仅详情接口返回 */
+  lists?: TaskListSummary[];
 }
 
 /** 创建项目请求，匹配 ProjectCreateRequest.java */

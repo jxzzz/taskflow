@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.taskflow.dto.ProjectCreateRequest;
 import com.taskflow.dto.ProjectResponse;
 import com.taskflow.dto.ProjectUpdateRequest;
+import com.taskflow.dto.TaskCardBrief;
+import com.taskflow.dto.TaskListSummary;
 import com.taskflow.entity.Project;
 import com.taskflow.entity.ProjectMember;
 import com.taskflow.entity.Task;
@@ -95,7 +97,7 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectResponse getById(Long id, Long currentUserId) {
         Project project = getProjectOrThrow(id);
         checkMember(id, currentUserId);
-        return buildResponse(project);
+        return buildDetailResponse(project);
     }
 
     @Override
@@ -239,6 +241,73 @@ public class ProjectServiceImpl implements ProjectService {
                 .memberCount(memberCount != null ? memberCount.intValue() : 0)
                 .listCount(listCount != null ? listCount.intValue() : 0)
                 .createTime(project.getCreateTime())
+                .build();
+    }
+
+    /**
+     * 构建包含列表和卡片的看板详情
+     */
+    private ProjectResponse buildDetailResponse(Project project) {
+        ProjectResponse response = buildResponse(project);
+
+        // 查询所有列表（按 sortOrder 排序）
+        List<TaskList> lists = taskListMapper.selectList(
+                new LambdaQueryWrapper<TaskList>()
+                        .eq(TaskList::getProjectId, project.getId())
+                        .orderByAsc(TaskList::getSortOrder));
+
+        // 为每个列表构建 TaskListSummary（含卡片）
+        List<TaskListSummary> listSummaries = lists.stream()
+                .map(this::buildListSummary)
+                .collect(Collectors.toList());
+
+        response.setLists(listSummaries);
+        return response;
+    }
+
+    /**
+     * 构建单个列表摘要（含卡片列表）
+     */
+    private TaskListSummary buildListSummary(TaskList list) {
+        // 查询该列表下未删除的卡片
+        List<Task> tasks = taskMapper.selectList(
+                new LambdaQueryWrapper<Task>()
+                        .eq(Task::getListId, list.getId())
+                        .eq(Task::getIsDeleted, 0)
+                        .orderByAsc(Task::getSortOrder));
+
+        List<TaskCardBrief> cards = tasks.stream()
+                .map(this::buildCardBrief)
+                .collect(Collectors.toList());
+
+        return TaskListSummary.builder()
+                .id(list.getId())
+                .name(list.getName())
+                .sortOrder(list.getSortOrder())
+                .taskCount(cards.size())
+                .tasks(cards)
+                .build();
+    }
+
+    /**
+     * 构建卡片简要信息
+     */
+    private TaskCardBrief buildCardBrief(Task task) {
+        String assigneeName = null;
+        if (task.getAssigneeId() != null) {
+            User assignee = userMapper.selectById(task.getAssigneeId());
+            assigneeName = assignee != null ? assignee.getUsername() : null;
+        }
+
+        return TaskCardBrief.builder()
+                .id(task.getId())
+                .title(task.getTitle())
+                .priority(task.getPriority())
+                .assigneeId(task.getAssigneeId())
+                .assigneeName(assigneeName)
+                .dueDate(task.getDueDate())
+                .sortOrder(task.getSortOrder())
+                .labelCount(0) // 阶段2 实现
                 .build();
     }
 }

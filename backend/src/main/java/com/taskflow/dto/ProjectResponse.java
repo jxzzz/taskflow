@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -38,4 +39,7 @@ public class ProjectResponse {
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
+
+    @Schema(description = "看板列表（含卡片），仅详情接口返回")
+    private List<TaskListSummary> lists;
 }

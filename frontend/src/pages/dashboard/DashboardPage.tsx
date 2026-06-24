@@ -1,4 +1,4 @@
-import { Row, Col, Typography, Card, Tag } from 'antd';
+import { Row, Col, Typography, Card, Tag, Skeleton } from 'antd';
 import { ProjectOutlined, UserOutlined, CheckSquareOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
@@ -75,48 +75,122 @@ export default function DashboardPage() {
         ))}
       </Row>
 
-      {/* Recent projects */}
-      <Card style={{ border: 'none' }} loading={isFetching}>
-        <Title level={5} style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, marginBottom: 16 }}>
+      {/* My Projects */}
+      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+        <Title level={5} style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, margin: 0 }}>
           我的项目
         </Title>
+        {data?.projects && data.projects.length > 0 && (
+          <Link to={ROUTES.PROJECTS} style={{ fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
+            查看全部 <ArrowRightOutlined style={{ fontSize: 11 }} />
+          </Link>
+        )}
+      </div>
 
-        {data?.projects && data.projects.length > 0 ? (
-          <Row gutter={[12, 12]}>
-            {data.projects.map((p) => (
-              <Col xs={24} sm={12} md={8} key={p.id}>
-                <Link to={`/projects/${p.id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{
-                    padding: 14, borderRadius: 12, border: '1px solid var(--color-border-subtle)',
-                    transition: 'all 200ms cubic-bezier(0.19,1,0.22,1)',
+      {isFetching && !data ? (
+        <Row gutter={[16, 16]}>
+          {[1, 2].map((i) => (
+            <Col xs={24} sm={12} key={i}>
+              <div style={{ padding: '22px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border-subtle)' }}>
+                <Skeleton active title={{ width: '60%' }} paragraph={{ rows: 2 }} />
+              </div>
+            </Col>
+          ))}
+        </Row>
+      ) : data?.projects && data.projects.length > 0 ? (
+        <Row gutter={[16, 16]}>
+          {data.projects.map((p) => (
+            <Col xs={24} sm={12} key={p.id}>
+              <Link to={`/projects/${p.id}`} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  background: 'var(--color-bg-elevated)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border-subtle)',
+                  padding: '22px 24px',
+                  cursor: 'pointer',
+                  transition: 'all var(--duration-normal) var(--ease-out-expo)',
+                  boxShadow: 'var(--shadow-xs)',
+                }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+                    e.currentTarget.style.borderColor = 'var(--color-border-default)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-bg-surface)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <div style={{ fontWeight: 600, fontSize: 14, color: '#2b2825', marginBottom: 6 }}>
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
+                    e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {/* Top row: name + arrow */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-ink-primary)', lineHeight: 1.3 }}>
                       {p.name}
                     </div>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                      <Tag style={{ background: 'var(--tag-lavender)', color: 'var(--tag-lavender-text)', border: 'none', margin: 0, fontSize: 11 }}>
-                        {p.ownerName}
-                      </Tag>
-                      <Text style={{ fontSize: 11, color: 'rgba(43,40,37,0.35)' }}>
-                        {p.taskCount} 任务 · {p.memberCount} 人 · {dayjs(p.createTime).format('MM-DD')}
-                      </Text>
-                    </div>
+                    <ArrowRightOutlined style={{ color: 'var(--color-ink-disabled)', fontSize: 13, flexShrink: 0 }} />
                   </div>
-                </Link>
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <Text style={{ color: 'rgba(43,40,37,0.4)' }}>
+
+                  {/* Description */}
+                  {p.description && (
+                    <div style={{
+                      fontSize: 13, color: 'var(--color-ink-secondary)', lineHeight: 1.5,
+                      marginBottom: 14,
+                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    }}>
+                      {p.description}
+                    </div>
+                  )}
+                  {!p.description && <div style={{ height: 4 }} />}
+
+                  {/* Bottom row: stats + date */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                    {/* Owner tag */}
+                    <Tag style={{
+                      background: 'var(--tag-lavender)', color: 'var(--tag-lavender-text)',
+                      border: 'none', margin: 0, fontSize: 11, borderRadius: 'var(--radius-xs)',
+                      padding: '1px 8px', lineHeight: '18px',
+                    }}>
+                      {p.ownerName}
+                    </Tag>
+
+                    {/* Stats */}
+                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--color-ink-tertiary)' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--color-sage)', display: 'inline-block' }} />
+                        {p.listCount} 列表
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--color-lavender)', display: 'inline-block' }} />
+                        {p.taskCount} 任务
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--color-coral)', display: 'inline-block' }} />
+                        {p.memberCount} 人
+                      </span>
+                    </div>
+
+                    {/* Date */}
+                    <Text style={{ fontSize: 11, color: 'var(--color-ink-disabled)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                      {dayjs(p.createTime).format('YYYY/MM/DD')}
+                    </Text>
+                  </div>
+                </div>
+              </Link>
+            </Col>
+          ))}
+        </Row>
+      ) : (
+        <Card style={{ border: 'none', textAlign: 'center', padding: '48px 0' }}>
+          <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>
+            <ProjectOutlined />
+          </div>
+          <Text style={{ color: 'var(--color-ink-tertiary)', fontSize: 14 }}>
             还没有项目，
             <Link to={ROUTES.PROJECTS}>创建一个</Link>
             开始协作
           </Text>
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }

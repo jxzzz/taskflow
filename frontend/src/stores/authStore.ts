@@ -6,24 +6,21 @@ interface AuthState {
   token: string | null;
   user: UserInfo | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
 
-  /** 登录成功：保存 token 和用户信息 */
   login: (token: string, user: UserInfo) => void;
-
-  /** 退出登录：清除所有认证状态 */
   logout: () => void;
-
-  /** 更新用户信息（如修改用户名后） */
   setUser: (user: UserInfo) => void;
-
-  /** 从 localStorage 恢复会话（应用初始化时调用） */
-  restoreSession: () => void;
 }
 
+/** 创建 store 时立即从 localStorage 恢复 token */
+const storedToken = getToken();
+
 export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
+  token: storedToken,
   user: null,
-  isAuthenticated: false,
+  isAuthenticated: !!storedToken,
+  isInitialized: true, // token 恢复是同步的，立即可用
 
   login: (token, user) => {
     setToken(token);
@@ -37,13 +34,5 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setUser: (user) => {
     set({ user });
-  },
-
-  restoreSession: () => {
-    const token = getToken();
-    if (token) {
-      set({ token, isAuthenticated: true });
-      // user 信息从 API 获取（由调用方在应用启动时 fetch 后 setUser）
-    }
   },
 }));
