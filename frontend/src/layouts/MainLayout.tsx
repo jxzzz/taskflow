@@ -12,7 +12,7 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 const menuItems: MenuItem[] = [
   { key: ROUTES.DASHBOARD, icon: <DashboardOutlined />, label: '控制台' },
-  { key: ROUTES.PROJECTS, icon: <ProjectOutlined />, label: '看板' },
+  { key: ROUTES.PROJECTS, icon: <ProjectOutlined />, label: '项目' },
   { key: ROUTES.USERS, icon: <UserOutlined />, label: '用户' },
 ];
 

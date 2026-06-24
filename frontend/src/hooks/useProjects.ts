@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectApi } from '@/api/projects';
 import { App } from 'antd';
 
-/** 看板列表 */
+/** 项目列表 */
 export function useProjects(page = 1, size = 20) {
   return useQuery({
     queryKey: ['projects', page, size],
@@ -11,7 +11,7 @@ export function useProjects(page = 1, size = 20) {
   });
 }
 
-/** 看板详情 */
+/** 项目详情 */
 export function useProject(id: number) {
   return useQuery({
     queryKey: ['projects', id],
@@ -20,7 +20,7 @@ export function useProject(id: number) {
   });
 }
 
-/** 创建看板 */
+/** 创建项目 */
 export function useCreateProject() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
@@ -28,7 +28,7 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: projectApi.create,
     onSuccess: (project) => {
-      message.success(`看板「${project.name}」创建成功`);
+      message.success(`项目「${project.name}」创建成功`);
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: (error: Error) => {
@@ -37,7 +37,7 @@ export function useCreateProject() {
   });
 }
 
-/** 更新看板 */
+/** 更新项目 */
 export function useUpdateProject() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
@@ -46,7 +46,7 @@ export function useUpdateProject() {
     mutationFn: ({ id, data }: { id: number; data: { name?: string; description?: string } }) =>
       projectApi.update(id, data),
     onSuccess: (project) => {
-      message.success('看板已更新');
+      message.success('项目已更新');
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects', project.id] });
     },
@@ -56,7 +56,7 @@ export function useUpdateProject() {
   });
 }
 
-/** 删除看板 */
+/** 删除项目 */
 export function useDeleteProject() {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
@@ -64,7 +64,7 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: projectApi.delete,
     onSuccess: () => {
-      message.success('看板已删除');
+      message.success('项目已删除');
       queryClient.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: (error: Error) => {

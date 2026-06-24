@@ -47,7 +47,7 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div style={{ textAlign: 'center', padding: 72 }}>
-        <Title level={4}>看板不存在</Title>
+        <Title level={4}>项目不存在</Title>
         <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/projects')} style={{ marginTop: 16 }}>返回</Button>
       </div>
     );
@@ -58,7 +58,7 @@ export default function ProjectDetailPage() {
       <PageHeader
         title={project.name}
         subtitle={project.description || undefined}
-        breadcrumb={[{ title: '看板', path: '/projects' }, { title: project.name }]}
+        breadcrumb={[{ title: '项目', path: '/projects' }, { title: project.name }]}
       />
 
       <Space style={{ marginBottom: 24 }}>

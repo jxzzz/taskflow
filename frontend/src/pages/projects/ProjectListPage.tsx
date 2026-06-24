@@ -50,13 +50,13 @@ export default function ProjectListPage() {
     });
   };
   const handleDelete = (p: Project) => {
-    Modal.confirm({ title: '删除看板', content: `确定删除「${p.name}」？所有列表和任务将被级联删除。`, okText: '删除', okType: 'danger', cancelText: '取消', onOk: () => deleteMutation.mutate(p.id) });
+    Modal.confirm({ title: '删除项目', content: `确定删除「${p.name}」？所有列表和任务将被级联删除。`, okText: '删除', okType: 'danger', cancelText: '取消', onOk: () => deleteMutation.mutate(p.id) });
   };
 
   return (
     <div>
-      <PageHeader title="看板" subtitle="管理你的项目看板"
-        extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建看板</Button>} />
+      <PageHeader title="项目" subtitle="管理你的项目项目"
+        extra={<Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建项目</Button>} />
 
       <Row gutter={[20, 20]}>
         {data?.records.map((project) => {
@@ -107,22 +107,22 @@ export default function ProjectListPage() {
       {data?.records?.length === 0 && !isFetching && (
         <div style={{ textAlign: 'center', padding: 72 }}>
           <div style={{ fontSize: 52, marginBottom: 16, opacity: 0.35 }}>📋</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#2b2825', marginBottom: 6 }}>还没有看板</div>
-          <Text style={{ color: 'rgba(43,40,37,0.4)', display: 'block', marginBottom: 22 }}>创建你的第一个看板，开始管理任务</Text>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建看板</Button>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#2b2825', marginBottom: 6 }}>还没有项目</div>
+          <Text style={{ color: 'rgba(43,40,37,0.4)', display: 'block', marginBottom: 22 }}>创建你的第一个项目，开始管理任务</Text>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建项目</Button>
         </div>
       )}
 
-      <Modal title="创建看板" open={createOpen} onOk={handleCreate} onCancel={() => setCreateOpen(false)} confirmLoading={createMutation.isPending} okText="创建" cancelText="取消">
+      <Modal title="创建项目" open={createOpen} onOk={handleCreate} onCancel={() => setCreateOpen(false)} confirmLoading={createMutation.isPending} okText="创建" cancelText="取消">
         <Form form={createForm} layout="vertical">
-          <Form.Item name="name" label="看板名称" rules={[{ required: true }, { max: 100 }]}><Input placeholder="例如：产品研发" /></Form.Item>
-          <Form.Item name="description" label="描述" rules={[{ max: 255 }]}><Input.TextArea rows={3} placeholder="看板用途说明（可选）" /></Form.Item>
+          <Form.Item name="name" label="项目名称" rules={[{ required: true }, { max: 100 }]}><Input placeholder="例如：产品研发" /></Form.Item>
+          <Form.Item name="description" label="描述" rules={[{ max: 255 }]}><Input.TextArea rows={3} placeholder="项目用途说明（可选）" /></Form.Item>
         </Form>
       </Modal>
 
       <Modal title={`编辑「${editProject?.name}」`} open={!!editProject} onOk={handleUpdate} onCancel={() => setEditProject(null)} confirmLoading={updateMutation.isPending} okText="保存" cancelText="取消">
         <Form form={editForm} layout="vertical">
-          <Form.Item name="name" label="看板名称" rules={[{ required: true }, { max: 100 }]}><Input /></Form.Item>
+          <Form.Item name="name" label="项目名称" rules={[{ required: true }, { max: 100 }]}><Input /></Form.Item>
           <Form.Item name="description" label="描述" rules={[{ max: 255 }]}><Input.TextArea rows={3} /></Form.Item>
         </Form>
       </Modal>

@@ -36,7 +36,7 @@ export default function DashboardPage() {
       <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={8}>
           <Link to={ROUTES.PROJECTS} style={{ textDecoration: 'none' }}>
-            {statCard(<ProjectOutlined />, projectsData?.total ?? '—', '看板', 'var(--color-lavender-soft)', 'var(--color-lavender)', ROUTES.PROJECTS)}
+            {statCard(<ProjectOutlined />, projectsData?.total ?? '—', '项目', 'var(--color-lavender-soft)', 'var(--color-lavender)', ROUTES.PROJECTS)}
           </Link>
         </Col>
         <Col xs={24} sm={8}>
@@ -52,7 +52,7 @@ export default function DashboardPage() {
           <div style={{ flex: 1, minWidth: 240 }}>
             <Title level={5} style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, marginBottom: 8 }}>快速开始</Title>
             <Text style={{ color: 'rgba(43,40,37,0.55)', lineHeight: 1.7 }}>
-              创建你的第一个<Link to={ROUTES.PROJECTS}>看板</Link>，添加任务列表和卡片，邀请团队成员开始协作。TaskFlow 帮助你更高效地管理项目和任务。
+              创建你的第一个<Link to={ROUTES.PROJECTS}>项目</Link>，添加任务列表和卡片，邀请团队成员开始协作。TaskFlow 帮助你更高效地管理项目和任务。
             </Text>
           </div>
           <div style={{
