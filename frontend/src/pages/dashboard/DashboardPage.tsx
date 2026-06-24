@@ -1,68 +1,121 @@
-import { Row, Col, Typography, Card } from 'antd';
-import { ProjectOutlined, UserOutlined, ThunderboltOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Row, Col, Typography, Card, Tag } from 'antd';
+import { ProjectOutlined, UserOutlined, CheckSquareOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
-import { useUsers } from '@/hooks/useUsers';
-import { useProjects } from '@/hooks/useProjects';
+import { useDashboard } from '@/hooks/useDashboard';
 import { ROUTES } from '@/router/routes';
 import { useAuthStore } from '@/stores/authStore';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
-const statCard = (icon: React.ReactNode, value: string | number, label: string, bg: string, color: string, link?: string) => (
-  <Card size="small" style={{ border: 'none' }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-      <div style={{ width: 46, height: 46, borderRadius: 14, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color, flexShrink: 0 }}>
-        {icon}
-      </div>
-      <div>
-        <div style={{ fontSize: 22, fontWeight: 700, color: '#2b2825', lineHeight: 1.2 }}>{value}</div>
-        <Text style={{ fontSize: 12.5, color: 'rgba(43,40,37,0.48)' }}>{label}</Text>
-      </div>
-      {link && <ArrowRightOutlined style={{ marginLeft: 'auto', color: 'rgba(43,40,37,0.25)', fontSize: 14 }} />}
-    </div>
-  </Card>
-);
-
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { data: usersData } = useUsers(1, 1);
-  const { data: projectsData } = useProjects(1, 1);
+  const { data, isFetching } = useDashboard();
+
+  const statCards = [
+    {
+      icon: <ProjectOutlined />,
+      value: data?.totalProjects ?? '—',
+      label: '项目',
+      bg: 'var(--color-lavender-soft)',
+      color: 'var(--color-lavender)',
+      link: ROUTES.PROJECTS,
+    },
+    {
+      icon: <CheckSquareOutlined />,
+      value: data?.totalTasks ?? '—',
+      label: '任务',
+      bg: 'var(--color-butter-soft)',
+      color: 'var(--color-butter)',
+    },
+    {
+      icon: <UserOutlined />,
+      value: data?.totalUsers ?? '—',
+      label: '用户',
+      bg: 'var(--color-sage-soft)',
+      color: 'var(--color-sage)',
+    },
+  ];
 
   return (
     <div>
-      <PageHeader title={`你好，${user?.username || '用户'}`} subtitle="欢迎使用 TaskFlow" />
+      <PageHeader
+        title={`你好，${user?.username || '用户'}`}
+        subtitle="欢迎使用 TaskFlow"
+      />
 
+      {/* Stats */}
       <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={8}>
-          <Link to={ROUTES.PROJECTS} style={{ textDecoration: 'none' }}>
-            {statCard(<ProjectOutlined />, projectsData?.total ?? '—', '项目', 'var(--color-lavender-soft)', 'var(--color-lavender)', ROUTES.PROJECTS)}
-          </Link>
-        </Col>
-        <Col xs={24} sm={8}>
-          {statCard(<UserOutlined />, usersData?.total ?? '—', '用户', 'var(--color-sage-soft)', 'var(--color-sage)')}
-        </Col>
-        <Col xs={24} sm={8}>
-          {statCard(<ThunderboltOutlined />, '—', '任务', 'var(--color-butter-soft)', 'var(--color-butter)')}
-        </Col>
+        {statCards.map((stat) => (
+          <Col xs={24} sm={8} key={stat.label}>
+            <Card size="small" style={{ border: 'none' }} loading={isFetching}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <div style={{
+                  width: 46, height: 46, borderRadius: 14, background: stat.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 20, color: stat.color, flexShrink: 0,
+                }}>
+                  {stat.icon}
+                </div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: '#2b2825', lineHeight: 1.2 }}>
+                    {stat.value}
+                  </div>
+                  <Text style={{ fontSize: 12.5, color: 'rgba(43,40,37,0.48)' }}>{stat.label}</Text>
+                </div>
+                {stat.link && (
+                  <Link to={stat.link} style={{ marginLeft: 'auto' }}>
+                    <ArrowRightOutlined style={{ color: 'rgba(43,40,37,0.25)', fontSize: 14 }} />
+                  </Link>
+                )}
+              </div>
+            </Card>
+          </Col>
+        ))}
       </Row>
 
-      <Card style={{ border: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 240 }}>
-            <Title level={5} style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, marginBottom: 8 }}>快速开始</Title>
-            <Text style={{ color: 'rgba(43,40,37,0.55)', lineHeight: 1.7 }}>
-              创建你的第一个<Link to={ROUTES.PROJECTS}>项目</Link>，添加任务列表和卡片，邀请团队成员开始协作。TaskFlow 帮助你更高效地管理项目和任务。
-            </Text>
-          </div>
-          <div style={{
-            width: 160, height: 100, borderRadius: 20,
-            background: 'linear-gradient(135deg, rgba(155,151,212,0.08), rgba(232,160,156,0.06))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            <ThunderboltOutlined style={{ fontSize: 40, color: 'var(--color-lavender)', opacity: 0.6 }} />
-          </div>
-        </div>
+      {/* Recent projects */}
+      <Card style={{ border: 'none' }} loading={isFetching}>
+        <Title level={5} style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, marginBottom: 16 }}>
+          我的项目
+        </Title>
+
+        {data?.projects && data.projects.length > 0 ? (
+          <Row gutter={[12, 12]}>
+            {data.projects.map((p) => (
+              <Col xs={24} sm={12} md={8} key={p.id}>
+                <Link to={`/projects/${p.id}`} style={{ textDecoration: 'none' }}>
+                  <div style={{
+                    padding: 14, borderRadius: 12, border: '1px solid var(--color-border-subtle)',
+                    transition: 'all 200ms cubic-bezier(0.19,1,0.22,1)',
+                  }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-bg-surface)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <div style={{ fontWeight: 600, fontSize: 14, color: '#2b2825', marginBottom: 6 }}>
+                      {p.name}
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <Tag style={{ background: 'var(--tag-lavender)', color: 'var(--tag-lavender-text)', border: 'none', margin: 0, fontSize: 11 }}>
+                        {p.ownerName}
+                      </Tag>
+                      <Text style={{ fontSize: 11, color: 'rgba(43,40,37,0.35)' }}>
+                        {p.taskCount} 任务 · {p.memberCount} 人 · {dayjs(p.createTime).format('MM-DD')}
+                      </Text>
+                    </div>
+                  </div>
+                </Link>
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <Text style={{ color: 'rgba(43,40,37,0.4)' }}>
+            还没有项目，
+            <Link to={ROUTES.PROJECTS}>创建一个</Link>
+            开始协作
+          </Text>
+        )}
       </Card>
     </div>
   );
