@@ -1,12 +1,13 @@
+import { useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, App as AntApp } from 'antd';
 import { RouterProvider } from 'react-router-dom';
 import zhCN from 'antd/locale/zh_CN';
+import enUS from 'antd/locale/en_US';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import { router } from '@/router';
-
-dayjs.locale('zh-cn');
+import { useAppStore, COLOR_SCHEMES } from '@/stores/appStore';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,9 +16,9 @@ const queryClient = new QueryClient({
   },
 });
 
-/** Soft Pastel Atelier theme */
-const pastelTheme = {
-  token: {
+/** Soft Pastel Atelier theme tokens by color scheme */
+function buildThemeTokens(csRgb: string) {
+  return {
     colorPrimary: '#9b97d4',
     colorPrimaryBg: '#f3f2fb',
     colorPrimaryBgHover: '#e8e6f8',
@@ -28,7 +29,7 @@ const pastelTheme = {
     colorBgBase: '#ffffff',
     colorBgContainer: '#ffffff',
     colorBgElevated: '#ffffff',
-    colorBgLayout: '#f6f4f0',
+    colorBgLayout: `rgba(${csRgb}, 0.04)`,
     colorBgSpotlight: '#faf9f6',
     colorBgMask: 'rgba(0, 0, 0, 0.30)',
 
@@ -59,17 +60,40 @@ const pastelTheme = {
     colorInfo: '#99bcdb',
     colorLink: '#9b97d4',
     colorLinkHover: '#827ec4',
-  },
+  };
+}
+
+const locales: Record<string, typeof zhCN> = {
+  'zh-CN': zhCN,
+  en: enUS,
 };
+
+function AppInner() {
+  const colorScheme = useAppStore((s) => s.colorScheme);
+  const language = useAppStore((s) => s.language);
+  const csRgb = COLOR_SCHEMES[colorScheme].accentRgb;
+
+  // Sync dayjs locale
+  useMemo(() => {
+    dayjs.locale(language === 'zh-CN' ? 'zh-cn' : 'en');
+  }, [language]);
+
+  const theme = useMemo(() => ({ token: buildThemeTokens(csRgb) }), [csRgb]);
+  const locale = locales[language] || zhCN;
+
+  return (
+    <ConfigProvider locale={locale} theme={theme}>
+      <AntApp>
+        <RouterProvider router={router} />
+      </AntApp>
+    </ConfigProvider>
+  );
+}
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider locale={zhCN} theme={pastelTheme}>
-        <AntApp>
-          <RouterProvider router={router} />
-        </AntApp>
-      </ConfigProvider>
+      <AppInner />
     </QueryClientProvider>
   );
 }

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Schema(description = "创建卡片请求")
@@ -27,4 +28,7 @@ public class TaskCreateRequest {
 
     @Schema(description = "截止日期")
     private LocalDateTime dueDate;
+
+    @Schema(description = "检查项标题列表（创建时一并写入）")
+    private List<@Size(max = 255, message = "检查项不能超过255个字符") String> checklistItems;
 }

@@ -3,14 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Button,
   Space,
-  Tag,
   Spin,
+  Tag,
   Typography,
   Input,
   Empty,
   Drawer,
-  Descriptions,
   Skeleton,
+  Checkbox,
   message,
 } from 'antd';
 import {
@@ -46,17 +46,289 @@ import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/common/PageHeader';
 import EmptyKanban from '@/components/common/EmptyKanban';
 import QuickAddModal from '@/components/common/QuickAddModal';
+import TaskCreateModal from '@/components/common/TaskCreateModal';
 import KanbanColumn from '@/pages/projects/KanbanColumn';
 import KanbanCard from '@/pages/projects/KanbanCard';
 import { useProject } from '@/hooks/useProjects';
 import { useCreateTaskList } from '@/hooks/useTaskLists';
 import { useCreateTask, useMoveTask, useTaskDetail } from '@/hooks/useTasks';
+import {
+  useCreateChecklistItem,
+  useToggleChecklistItem,
+  useDeleteChecklistItem,
+} from '@/hooks/useChecklist';
 import { computeSortOrders } from '@/hooks/useKanbanMutations';
 import { taskApi, taskListApi } from '@/api/tasks';
-import type { TaskCardBrief, TaskListSummary } from '@/types/task';
+import type { TaskCardBrief, TaskListSummary, TaskDetail } from '@/types/task';
 import type { Project } from '@/types/project';
 
 const { Text, Title } = Typography;
+
+/** ==================== 任务详情内容 ==================== */
+
+function TaskDetailContent({ task }: { task: TaskDetail }) {
+  const queryClient = useQueryClient();
+  const createItem = useCreateChecklistItem(task.id);
+  const toggleItem = useToggleChecklistItem(task.id);
+  const deleteItem = useDeleteChecklistItem(task.id);
+  const [newTitle, setNewTitle] = useState('');
+
+  const items = task.checklistItems || [];
+  const completedCount = items.filter((i) => i.completed).length;
+  const totalCount = items.length;
+  const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+  // Content lines (for "generate checklist" feature)
+  const contentLines = (task.content || '').split('\n').filter((l) => l.trim() !== '');
+  const canGenerate = contentLines.length > 0 && totalCount === 0;
+
+  function handleAdd() {
+    if (!newTitle.trim()) return;
+    createItem.mutate(newTitle.trim(), { onSuccess: () => setNewTitle('') });
+  }
+
+  const ink = { primary: '#2b2825', secondary: 'rgba(43,40,37,0.58)', tertiary: 'rgba(43,40,37,0.36)', disabled: 'rgba(43,40,37,0.18)' };
+
+  return (
+    <div>
+      {/* Meta row — pastel pills */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+        <span style={{
+          ...pillBase,
+          background: task.priority === 2 ? '#fae3e1' : task.priority === 1 ? '#faf0da' : 'rgba(0,0,0,0.04)',
+          color: task.priority === 2 ? '#b86d6a' : task.priority === 1 ? '#9e853d' : ink.tertiary,
+        }}>
+          {task.priorityLabel}
+        </span>
+        <span style={{ ...pillBase, background: '#e8e6f8', color: '#6b67a8' }}>
+          {task.listName}
+        </span>
+        {task.dueDate && (
+          <span style={{
+            ...pillBase,
+            background: task.isOverdue ? '#fae3e1' : 'rgba(0,0,0,0.04)',
+            color: task.isOverdue ? '#b86d6a' : ink.secondary,
+          }}>
+            {task.isOverdue ? '⚠ ' : ''}{dayjs(task.dueDate).format('MM/DD HH:mm')}
+          </span>
+        )}
+        {task.assigneeName && (
+          <span style={{ ...pillBase, background: '#e1edf6', color: '#5a809b' }}>
+            {task.assigneeName}
+          </span>
+        )}
+      </div>
+
+      {/* Checklist section */}
+      <div style={{ marginTop: 6 }}>
+        {/* Header + count */}
+        <div style={{
+          display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
+          marginBottom: totalCount > 0 ? 8 : 0,
+        }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600, color: ink.disabled,
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+            fontFamily: "'DM Sans', sans-serif",
+          }}>
+            检查项
+          </span>
+          {totalCount > 0 && (
+            <span style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'DM Sans', sans-serif" }}>
+              {completedCount}/{totalCount}
+            </span>
+          )}
+        </div>
+
+        {/* Progress track */}
+        {totalCount > 0 && (
+          <div style={{
+            height: 3, borderRadius: 2, marginBottom: 14,
+            background: 'rgba(0,0,0,0.06)',
+            overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', borderRadius: 2,
+              width: `${pct}%`,
+              background: pct === 100
+                ? 'linear-gradient(90deg, #9b97d4, #9bbc9e)'
+                : '#9b97d4',
+              transition: 'width 0.5s cubic-bezier(0.19, 1, 0.22, 1)',
+            }} />
+          </div>
+        )}
+
+        {/* Checklist items from DB */}
+        {items.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+              padding: '8px 10px 8px 4px',
+              borderRadius: 8,
+              cursor: 'pointer',
+              transition: 'background 0.15s ease',
+              userSelect: 'none',
+            }}
+            onClick={() => toggleItem.mutate(item.id)}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'rgba(155,151,212,0.06)';
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = 'transparent';
+            }}
+          >
+            <Checkbox checked={item.completed} style={{ marginTop: 2, pointerEvents: 'none' }} />
+            <span style={{
+              flex: 1, fontSize: 14, lineHeight: 1.55,
+              color: item.completed ? ink.disabled : ink.primary,
+              textDecoration: item.completed ? 'line-through' : 'none',
+              textDecorationColor: 'rgba(0,0,0,0.15)',
+              transition: 'color 0.25s ease',
+              wordBreak: 'break-word',
+              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            }}>
+              {item.title}
+            </span>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); deleteItem.mutate(item.id); }}
+              style={{
+                border: 'none', background: 'transparent', cursor: 'pointer',
+                color: 'transparent', padding: '2px 4px', borderRadius: 4,
+                fontSize: 12, lineHeight: 1, transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(0,0,0,0.2)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'transparent'; }}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+
+        {/* Empty state or content-based fallback */}
+        {totalCount === 0 && (
+          <>
+            {canGenerate ? (
+              <div style={{
+                padding: '24px 16px', textAlign: 'center',
+                borderRadius: 10, border: '1px dashed rgba(0,0,0,0.08)',
+                background: 'rgba(0,0,0,0.015)',
+              }}>
+                <div style={{ fontSize: 13, color: ink.tertiary, marginBottom: 12, fontFamily: "'DM Sans', sans-serif" }}>
+                  描述中有 {contentLines.length} 行内容
+                </div>
+                <Button
+                  size="small"
+                  type="default"
+                  onClick={() => {
+                    contentLines.forEach((line) => createItem.mutate(line));
+                  }}
+                  loading={createItem.isPending}
+                  style={{ borderRadius: 9999 }}
+                >
+                  从描述生成检查项
+                </Button>
+              </div>
+            ) : (
+              <div style={{
+                padding: '24px 16px', textAlign: 'center',
+                borderRadius: 10, border: '1px dashed rgba(0,0,0,0.08)',
+                background: 'rgba(0,0,0,0.015)',
+              }}>
+                <span style={{ fontSize: 13, color: ink.disabled, fontFamily: "'DM Sans', sans-serif" }}>
+                  暂无检查项，在下方添加
+                </span>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Add input */}
+        <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+          <Input
+            size="small"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            onPressEnter={handleAdd}
+            placeholder="添加检查项..."
+            style={{ borderRadius: 8 }}
+          />
+          <Button
+            size="small"
+            type="primary"
+            disabled={!newTitle.trim()}
+            loading={createItem.isPending}
+            onClick={handleAdd}
+            style={{ borderRadius: 9999 }}
+          >
+            添加
+          </Button>
+        </div>
+      </div>
+
+      {/* Task content (plain text, if any) */}
+      {task.content && (
+        <div style={{ marginTop: 24 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600, color: ink.disabled,
+            textTransform: 'uppercase', letterSpacing: '0.06em',
+            fontFamily: "'DM Sans', sans-serif",
+          }}>
+            描述
+          </span>
+          <div style={{
+            marginTop: 6, padding: '10px 14px',
+            borderRadius: 10,
+            background: 'rgba(0,0,0,0.02)',
+            border: '1px solid rgba(0,0,0,0.05)',
+            fontSize: 13.5, lineHeight: 1.7,
+            color: ink.secondary,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+          }}>
+            {task.content}
+          </div>
+        </div>
+      )}
+
+      {/* Footer — subtle metadata */}
+      <div style={{
+        marginTop: 28, paddingTop: 14,
+        borderTop: '1px solid rgba(0,0,0,0.06)',
+        display: 'flex', gap: 32,
+      }}>
+        <div>
+          <div style={{ fontSize: 9, color: ink.disabled, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
+            Created
+          </div>
+          <div style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'DM Sans', sans-serif" }}>
+            {dayjs(task.createTime).format('YYYY/MM/DD HH:mm')}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: 9, color: ink.disabled, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
+            Updated
+          </div>
+          <div style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'DM Sans', sans-serif" }}>
+            {dayjs(task.updateTime).format('YYYY/MM/DD HH:mm')}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const pillBase: React.CSSProperties = {
+  padding: '2px 10px',
+  borderRadius: 9999,
+  fontSize: 11,
+  fontWeight: 500,
+  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  letterSpacing: '0.01em',
+  border: 'none',
+};
 
 /** ==================== 主页面 ==================== */
 
@@ -73,6 +345,9 @@ export default function ProjectDetailPage() {
 
   // Quick-add command palette
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  // Detailed task creation modal
+  const [taskCreateOpen, setTaskCreateOpen] = useState(false);
+  const [taskCreateListId, setTaskCreateListId] = useState<number | undefined>();
   const createTask = useCreateTask();
 
   const lists = project?.lists || [];
@@ -373,6 +648,42 @@ export default function ProjectDetailPage() {
     [lists, createList, createTask],
   );
 
+  /** Handle detailed task creation modal submit */
+  const handleTaskCreateSubmit = useCallback(
+    (data: { title: string; content?: string; priority?: number; dueDate?: string }) => {
+      const targetListId = taskCreateListId || lists[0]?.id;
+      if (!targetListId) {
+        createList.mutate('To Do', {
+          onSuccess: (newList) => {
+            const listId = (newList as any)?.id;
+            if (listId) {
+              createTask.mutate(
+                { listId, data },
+                {
+                  onSuccess: () => {
+                    setTaskCreateOpen(false);
+                    message.success('任务已创建 ✨');
+                  },
+                },
+              );
+            }
+          },
+        });
+        return;
+      }
+      createTask.mutate(
+        { listId: targetListId, data },
+        {
+          onSuccess: () => {
+            setTaskCreateOpen(false);
+            message.success('任务已创建 ✨');
+          },
+        },
+      );
+    },
+    [lists, taskCreateListId, createList, createTask],
+  );
+
   /** Quick-start: create a default "To Do" list so the user can begin adding tasks */
   const handleCreateFirstList = useCallback(() => {
     if (createList.isPending) return;
@@ -559,6 +870,10 @@ export default function ProjectDetailPage() {
                 onTaskDeleted={(taskId) => {
                   if (taskId === selectedTaskId) setSelectedTaskId(null);
                 }}
+                onAddTask={(listId) => {
+                  setTaskCreateListId(listId);
+                  setTaskCreateOpen(true);
+                }}
               />
             ))}
           </SortableContext>
@@ -681,91 +996,31 @@ export default function ProjectDetailPage() {
         lists={lists}
       />
 
+      {/* Detailed task creation modal */}
+      <TaskCreateModal
+        open={taskCreateOpen}
+        onClose={() => setTaskCreateOpen(false)}
+        onSubmit={handleTaskCreateSubmit}
+        lists={lists}
+        defaultListId={taskCreateListId}
+      />
+
       {/* Task detail drawer */}
       <Drawer
-        title={taskDetail?.title || '卡片详情'}
-        open={!!selectedTaskId}
+        title={taskDetail?.title ?? '加载中...'}
+        open={selectedTaskId !== null}
         onClose={() => setSelectedTaskId(null)}
         width={480}
         destroyOnClose
-        styles={{ body: { padding: '20px 24px' } }}
+        styles={{
+          body: { padding: '20px 24px' },
+        }}
       >
-        {taskLoading ? (
-          <Skeleton active paragraph={{ rows: 6 }} />
-        ) : taskDetail ? (
-          <div>
-            {/* Priority + Status */}
-            <Descriptions column={2} size="small" style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="优先级">
-                <Tag
-                  color={
-                    taskDetail.priority === 2
-                      ? 'red'
-                      : taskDetail.priority === 1
-                        ? 'orange'
-                        : 'default'
-                  }
-                >
-                  {taskDetail.priorityLabel}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="列表">{taskDetail.listName}</Descriptions.Item>
-              {taskDetail.dueDate && (
-                <Descriptions.Item label="截止日期">
-                  <Text style={{ color: taskDetail.isOverdue ? 'var(--color-coral)' : undefined }}>
-                    {dayjs(taskDetail.dueDate).format('YYYY-MM-DD HH:mm')}
-                    {taskDetail.isOverdue && ' (已逾期)'}
-                  </Text>
-                </Descriptions.Item>
-              )}
-              {taskDetail.assigneeName && (
-                <Descriptions.Item label="负责人">{taskDetail.assigneeName}</Descriptions.Item>
-              )}
-            </Descriptions>
-
-            {/* Content */}
-            {taskDetail.content ? (
-              <div
-                style={{
-                  background: 'var(--color-bg-surface)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '14px 16px',
-                  fontSize: 13,
-                  lineHeight: 1.7,
-                  color: 'var(--color-ink-primary)',
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}
-              >
-                {taskDetail.content}
-              </div>
-            ) : (
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description="暂无详细描述"
-                style={{ marginTop: 24 }}
-              />
-            )}
-
-            {/* Meta info */}
-            <div
-              style={{
-                marginTop: 24,
-                padding: '12px 0',
-                borderTop: '1px solid var(--color-border-subtle)',
-              }}
-            >
-              <Space size={24}>
-                <Text style={{ fontSize: 11, color: 'var(--color-ink-disabled)' }}>
-                  创建于 {dayjs(taskDetail.createTime).format('YYYY-MM-DD HH:mm')}
-                </Text>
-                <Text style={{ fontSize: 11, color: 'var(--color-ink-disabled)' }}>
-                  更新于 {dayjs(taskDetail.updateTime).format('YYYY-MM-DD HH:mm')}
-                </Text>
-              </Space>
-            </div>
-          </div>
-        ) : null}
+        {taskLoading && <Skeleton active paragraph={{ rows: 6 }} />}
+        {!taskLoading && taskDetail && <TaskDetailContent task={taskDetail} />}
+        {!taskLoading && !taskDetail && (
+          <Empty description="未找到该任务" style={{ marginTop: 40 }} />
+        )}
       </Drawer>
     </div>
   );

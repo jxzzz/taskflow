@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -74,6 +75,9 @@ public class TaskResponse {
 
     @Schema(description = "附件数量")
     private Integer attachmentCount;
+
+    @Schema(description = "检查项列表")
+    private List<ChecklistItemResponse> checklistItems;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;

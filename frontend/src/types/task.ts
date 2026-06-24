@@ -2,12 +2,29 @@
 export interface TaskCardBrief {
   id: number;
   title: string;
+  contentSnippet?: string;    // 内容摘要（前120字符）
   priority: number;           // 0=普通, 1=紧急, 2=非常紧急
   assigneeId?: number;
   assigneeName?: string;
   dueDate?: string;
+  isOverdue?: boolean;        // 是否已逾期
+  coverColor?: string;        // 封面颜色(hex)
   sortOrder: number;
+  completedChecklistCount: number;
+  checklistCount: number;
+  commentCount: number;
   labelCount: number;
+  checklistItems?: ChecklistItem[];
+}
+
+/** 清单检查项 */
+export interface ChecklistItem {
+  id: number;
+  taskId: number;
+  title: string;
+  completed: boolean;
+  sortOrder: number;
+  createTime: string;
 }
 
 /** 列表摘要（含卡片），匹配 TaskListSummary.java */
@@ -41,6 +58,7 @@ export interface TaskDetail {
   completedChecklistCount: number;
   commentCount: number;
   attachmentCount: number;
+  checklistItems?: ChecklistItem[];
   createTime: string;
   updateTime: string;
 }
@@ -52,6 +70,7 @@ export interface CreateTaskRequest {
   assigneeId?: number;
   priority?: number;
   dueDate?: string;
+  checklistItems?: string[];
 }
 
 /** 更新卡片请求，匹配 TaskUpdateRequest.java */

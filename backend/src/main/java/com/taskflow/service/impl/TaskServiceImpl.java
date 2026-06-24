@@ -4,17 +4,20 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.taskflow.dto.ChecklistItemResponse;
 import com.taskflow.dto.ReorderItem;
 import com.taskflow.dto.TaskCreateRequest;
 import com.taskflow.dto.TaskMoveRequest;
 import com.taskflow.dto.TaskResponse;
 import com.taskflow.dto.TaskUpdateRequest;
+import com.taskflow.entity.ChecklistItem;
 import com.taskflow.entity.Project;
 import com.taskflow.entity.ProjectMember;
 import com.taskflow.entity.Task;
 import com.taskflow.entity.TaskList;
 import com.taskflow.entity.User;
 import com.taskflow.exception.BusinessException;
+import com.taskflow.mapper.ChecklistItemMapper;
 import com.taskflow.mapper.ProjectMapper;
 import com.taskflow.mapper.ProjectMemberMapper;
 import com.taskflow.mapper.TaskListMapper;
@@ -28,6 +31,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +42,7 @@ public class TaskServiceImpl implements TaskService {
     private final ProjectMapper projectMapper;
     private final ProjectMemberMapper projectMemberMapper;
     private final UserMapper userMapper;
+    private final ChecklistItemMapper checklistItemMapper;
 
     @Override
     @Transactional
@@ -66,6 +71,22 @@ public class TaskServiceImpl implements TaskService {
                 .sortOrder(count.intValue())
                 .build();
         taskMapper.insert(task);
+
+        // 批量创建检查项
+        if (request.getChecklistItems() != null && !request.getChecklistItems().isEmpty()) {
+            for (int i = 0; i < request.getChecklistItems().size(); i++) {
+                String itemTitle = request.getChecklistItems().get(i);
+                if (itemTitle != null && !itemTitle.isBlank()) {
+                    ChecklistItem item = ChecklistItem.builder()
+                            .taskId(task.getId())
+                            .title(itemTitle.trim())
+                            .completed(false)
+                            .sortOrder(i)
+                            .build();
+                    checklistItemMapper.insert(item);
+                }
+            }
+        }
 
         task = taskMapper.selectById(task.getId());
         return buildResponse(task);
@@ -235,6 +256,18 @@ public class TaskServiceImpl implements TaskService {
             priorityLabel = "非常紧急";
         }
 
+        // 查询检查项统计
+        List<ChecklistItem> checklistItems = checklistItemMapper.selectList(
+                new LambdaQueryWrapper<ChecklistItem>()
+                        .eq(ChecklistItem::getTaskId, task.getId()));
+        int checklistCount = checklistItems.size();
+        int completedChecklistCount = (int) checklistItems.stream()
+                .filter(i -> i.getCompleted() != null && i.getCompleted())
+                .count();
+        List<ChecklistItemResponse> checklistItemResponses = checklistItems.stream()
+                .map(ChecklistItemResponse::from)
+                .collect(Collectors.toList());
+
         return TaskResponse.builder()
                 .id(task.getId())
                 .listId(task.getListId())
@@ -252,8 +285,9 @@ public class TaskServiceImpl implements TaskService {
                 .coverImage(task.getCoverImage())
                 .sortOrder(task.getSortOrder())
                 .labelCount(0)
-                .checklistCount(0)
-                .completedChecklistCount(0)
+                .checklistCount(checklistCount)
+                .completedChecklistCount(completedChecklistCount)
+                .checklistItems(checklistItemResponses)
                 .commentCount(0)
                 .attachmentCount(0)
                 .createTime(task.getCreateTime())

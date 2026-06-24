@@ -1,10 +1,16 @@
-import { Row, Col, Typography, Card, Tag, Skeleton } from 'antd';
-import { ProjectOutlined, UserOutlined, CheckSquareOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { useState, useCallback } from 'react';
+import { Row, Col, Typography, Card, Tag, Skeleton, Modal, Form, Input, message } from 'antd';
+import { ProjectOutlined, UserOutlined, CheckSquareOutlined, ArrowRightOutlined, PlusOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
+import QuickActionFab from '@/components/common/QuickActionFab';
+import { useQuickActionItems } from '@/components/common/QuickActionFab';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useCreateProject } from '@/hooks/useProjects';
 import { ROUTES } from '@/router/routes';
 import { useAuthStore } from '@/stores/authStore';
+import { useAppStore, COLOR_SCHEMES, type ColorScheme, type Language } from '@/stores/appStore';
+import type { CreateProjectRequest } from '@/types/project';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -12,6 +18,51 @@ const { Title, Text } = Typography;
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { data, isFetching } = useDashboard();
+
+  // App-wide settings
+  const colorScheme = useAppStore((s) => s.colorScheme);
+  const setColorScheme = useAppStore((s) => s.setColorScheme);
+  const language = useAppStore((s) => s.language);
+  const setLanguage = useAppStore((s) => s.setLanguage);
+
+  // Create project modal
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createForm] = Form.useForm<CreateProjectRequest>();
+  const createMutation = useCreateProject();
+
+  const handleCreateProject = useCallback(() => {
+    createForm.validateFields().then((v) => {
+      createMutation.mutate(v, {
+        onSuccess: () => {
+          setCreateOpen(false);
+          createForm.resetFields();
+        },
+      });
+    });
+  }, [createForm, createMutation]);
+
+  // Theme cycling
+  const handleToggleTheme = useCallback(() => {
+    const schemes: ColorScheme[] = ['pastel-warm', 'pastel-cool', 'pastel-mint', 'pastel-rose'];
+    const idx = schemes.indexOf(colorScheme);
+    const next = schemes[(idx + 1) % schemes.length];
+    setColorScheme(next);
+    message.success(`配色方案：${COLOR_SCHEMES[next].label}`);
+  }, [colorScheme, setColorScheme]);
+
+  // Language toggle
+  const handleToggleLanguage = useCallback(() => {
+    const next: Language = language === 'zh-CN' ? 'en' : 'zh-CN';
+    setLanguage(next);
+    message.success(next === 'zh-CN' ? '已切换为中文' : 'Switched to English');
+  }, [language, setLanguage]);
+
+  // Quick action menu items
+  const quickActionItems = useQuickActionItems(
+    () => setCreateOpen(true),
+    handleToggleTheme,
+    handleToggleLanguage,
+  );
 
   const statCards = [
     {
@@ -191,6 +242,29 @@ export default function DashboardPage() {
           </Text>
         </Card>
       )}
+
+      {/* Quick Action FAB with radial menu */}
+      <QuickActionFab items={quickActionItems} />
+
+      {/* Create project modal */}
+      <Modal
+        title="新建项目"
+        open={createOpen}
+        onOk={handleCreateProject}
+        onCancel={() => setCreateOpen(false)}
+        confirmLoading={createMutation.isPending}
+        okText="创建"
+        cancelText="取消"
+      >
+        <Form form={createForm} layout="vertical">
+          <Form.Item name="name" label="项目名称" rules={[{ required: true, message: '请输入项目名称' }, { max: 100 }]}>
+            <Input placeholder="例如：产品研发" />
+          </Form.Item>
+          <Form.Item name="description" label="描述" rules={[{ max: 255 }]}>
+            <Input.TextArea rows={3} placeholder="项目用途说明（可选）" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

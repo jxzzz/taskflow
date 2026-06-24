@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react';
-import { App, Button, Space, Tag, Typography, Input, Dropdown } from 'antd';
+import { useMemo } from 'react';
+import { App, Button, Tag, Typography, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
 import { PlusOutlined, DeleteOutlined, HolderOutlined, MoreOutlined, EditOutlined } from '@ant-design/icons';
 import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import KanbanCard from '@/pages/projects/KanbanCard';
-import { useCreateTask, useDeleteTask, useMoveTask } from '@/hooks/useTasks';
+import { useDeleteTask, useMoveTask } from '@/hooks/useTasks';
 import { useDeleteTaskList } from '@/hooks/useTaskLists';
 import type { TaskListSummary } from '@/types/task';
 
@@ -19,6 +19,7 @@ interface KanbanColumnProps {
   onCardMoved: () => void;
   onCardClick: (cardId: number) => void;
   onTaskDeleted?: (taskId: number) => void;
+  onAddTask?: (listId: number) => void;
   /** When true, renders as a drag overlay (simplified, non-interactive) */
   isOverlay?: boolean;
 }
@@ -30,11 +31,9 @@ export default function KanbanColumn({
   onCardMoved,
   onCardClick,
   onTaskDeleted,
+  onAddTask,
   isOverlay = false,
 }: KanbanColumnProps) {
-  const [adding, setAdding] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const createTask = useCreateTask();
   const deleteTask = useDeleteTask();
   const moveTask = useMoveTask();
   const deleteList = useDeleteTaskList(projectId);
@@ -60,14 +59,6 @@ export default function KanbanColumn({
     id: `drop-list-${list.id}`,
     data: { type: 'column' as const, list },
   });
-
-  const handleAdd = () => {
-    if (!newTitle.trim()) return;
-    createTask.mutate(
-      { listId: list.id, data: { title: newTitle.trim() } },
-      { onSuccess: () => { setNewTitle(''); setAdding(false); } },
-    );
-  };
 
   const targetLists = allLists.filter((l) => l.id !== list.id);
   const cardIds = useMemo(() => list.tasks.map((t) => t.id), [list.tasks]);
@@ -167,7 +158,7 @@ export default function KanbanColumn({
               type="text"
               size="small"
               icon={<PlusOutlined />}
-              onClick={() => setAdding(true)}
+              onClick={() => onAddTask?.(list.id)}
               style={{ fontSize: 14, color: 'var(--color-ink-secondary)', borderRadius: 6 }}
             />
             <Dropdown
@@ -241,49 +232,6 @@ export default function KanbanColumn({
           >
             {isDropOver ? '松开放置卡片' : '拖拽卡片到此处'}
           </div>
-        )}
-
-        {/* Inline add form */}
-        {!isOverlay && (
-          <>
-            {adding ? (
-              <div style={{ padding: '0 2px' }}>
-                <Input
-                  autoFocus
-                  size="small"
-                  placeholder="输入卡片标题，回车提交"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  onPressEnter={(e) => {
-                    e.preventDefault();
-                    handleAdd();
-                  }}
-                  style={{ borderRadius: 'var(--radius-sm)', marginBottom: 6, fontSize: 12 }}
-                />
-                <Space size={6}>
-                  <Button size="small" type="primary" onClick={handleAdd} loading={createTask.isPending} style={{ borderRadius: 'var(--radius-xs)', fontSize: 12 }}>
-                    添加
-                  </Button>
-                  <Button size="small" onClick={() => { setAdding(false); setNewTitle(''); }} style={{ borderRadius: 'var(--radius-xs)', fontSize: 12 }}>
-                    取消
-                  </Button>
-                </Space>
-              </div>
-            ) : (
-              <Button
-                type="text"
-                block
-                icon={<PlusOutlined />}
-                onClick={() => setAdding(true)}
-                style={{
-                  color: 'var(--color-ink-tertiary)', fontSize: 12,
-                  borderRadius: 'var(--radius-sm)', marginTop: 2,
-                }}
-              >
-                添加卡片
-              </Button>
-            )}
-          </>
         )}
       </div>
     </div>

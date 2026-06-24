@@ -6,8 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.taskflow.dto.ProjectCreateRequest;
 import com.taskflow.dto.ProjectResponse;
 import com.taskflow.dto.ProjectUpdateRequest;
+import com.taskflow.dto.ChecklistItemResponse;
 import com.taskflow.dto.TaskCardBrief;
 import com.taskflow.dto.TaskListSummary;
+import com.taskflow.entity.ChecklistItem;
 import com.taskflow.entity.Project;
 import com.taskflow.entity.ProjectMember;
 import com.taskflow.entity.Task;
@@ -16,6 +18,7 @@ import com.taskflow.entity.User;
 import com.taskflow.exception.BusinessException;
 import com.taskflow.mapper.ProjectMapper;
 import com.taskflow.mapper.ProjectMemberMapper;
+import com.taskflow.mapper.ChecklistItemMapper;
 import com.taskflow.mapper.TaskListMapper;
 import com.taskflow.mapper.TaskMapper;
 import com.taskflow.mapper.UserMapper;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +43,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final UserMapper userMapper;
     private final TaskListMapper taskListMapper;
     private final TaskMapper taskMapper;
+    private final ChecklistItemMapper checklistItemMapper;
 
     @Override
     @Transactional
@@ -298,15 +303,49 @@ public class ProjectServiceImpl implements ProjectService {
             assigneeName = assignee != null ? assignee.getUsername() : null;
         }
 
+        // Content snippet: first 120 chars, strip markdown markers
+        String contentSnippet = null;
+        if (task.getContent() != null && !task.getContent().isEmpty()) {
+            String plain = task.getContent()
+                    .replaceAll("[#*`>\\[\\]()!]", "")
+                    .replaceAll("\\s+", " ")
+                    .trim();
+            contentSnippet = plain.length() > 120 ? plain.substring(0, 120) + "..." : plain;
+        }
+
+        boolean isOverdue = task.getDueDate() != null
+                && task.getDueDate().isBefore(LocalDateTime.now());
+
+        // Checklist counts + first 5 items
+        List<ChecklistItem> allItems = checklistItemMapper.selectList(
+                new LambdaQueryWrapper<ChecklistItem>()
+                        .eq(ChecklistItem::getTaskId, task.getId())
+                        .orderByAsc(ChecklistItem::getSortOrder));
+        int checklistCount = allItems.size();
+        int completedCount = (int) allItems.stream()
+                .filter(i -> i.getCompleted() != null && i.getCompleted())
+                .count();
+        List<ChecklistItemResponse> previewItems = allItems.stream()
+                .limit(5)
+                .map(ChecklistItemResponse::from)
+                .collect(Collectors.toList());
+
         return TaskCardBrief.builder()
                 .id(task.getId())
                 .title(task.getTitle())
+                .contentSnippet(contentSnippet)
                 .priority(task.getPriority())
                 .assigneeId(task.getAssigneeId())
                 .assigneeName(assigneeName)
                 .dueDate(task.getDueDate())
+                .isOverdue(isOverdue)
+                .coverColor(task.getCoverColor())
                 .sortOrder(task.getSortOrder())
-                .labelCount(0) // 阶段2 实现
+                .completedChecklistCount(completedCount)
+                .checklistCount(checklistCount)
+                .commentCount(0)
+                .labelCount(0)
+                .checklistItems(previewItems)
                 .build();
     }
 }

@@ -6,6 +6,7 @@ import type {
   UpdateTaskRequest,
   MoveTaskRequest,
   ReorderItem,
+  ChecklistItem,
 } from '@/types/task';
 import type { PaginatedResult } from '@/types/api';
 
@@ -61,4 +62,23 @@ export const taskApi = {
   /** 卡片排序，PUT /api/v1/lists/{listId}/tasks/reorder */
   reorder: (listId: number, items: ReorderItem[]) =>
     client.put<any, void>(`/lists/${listId}/tasks/reorder`, items),
+};
+
+/** 清单 API */
+export const checklistApi = {
+  /** 获取任务的所有检查项 GET /api/v1/tasks/{taskId}/checklist */
+  list: (taskId: number) =>
+    client.get<any, ChecklistItem[]>(`/tasks/${taskId}/checklist`),
+
+  /** 添加检查项 POST /api/v1/tasks/{taskId}/checklist */
+  create: (taskId: number, title: string) =>
+    client.post<any, ChecklistItem>(`/tasks/${taskId}/checklist`, { title }),
+
+  /** 切换完成状态 PUT /api/v1/checklist/{id}/toggle */
+  toggle: (id: number) =>
+    client.put<any, ChecklistItem>(`/checklist/${id}/toggle`),
+
+  /** 删除检查项 DELETE /api/v1/checklist/{id} */
+  delete: (id: number) =>
+    client.delete<any, void>(`/checklist/${id}`),
 };
