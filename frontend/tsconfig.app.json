@@ -15,7 +15,13 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path mapping (TS 6: paths resolve relative to tsconfig location) */
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     /* Linting */
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
