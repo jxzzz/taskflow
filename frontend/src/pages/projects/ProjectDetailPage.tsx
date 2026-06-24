@@ -21,6 +21,8 @@ import {
   PlusOutlined,
   AppstoreOutlined,
   UnorderedListOutlined,
+  GlobalOutlined,
+  LockOutlined,
 } from '@ant-design/icons';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
@@ -182,6 +184,20 @@ export default function ProjectDetailPage() {
           }}
         >
           {project.ownerName || `用户 #${project.ownerId}`}
+        </Tag>
+        <Tag
+          style={{
+            background: project.isPublic ? 'var(--tag-sage)' : 'rgba(0,0,0,0.04)',
+            color: project.isPublic ? 'var(--tag-sage-text)' : 'var(--color-ink-tertiary)',
+            border: 'none',
+            margin: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+          }}
+        >
+          {project.isPublic ? <GlobalOutlined style={{ fontSize: 10 }} /> : <LockOutlined style={{ fontSize: 10 }} />}
+          {project.isPublic ? '公开' : '私有'}
         </Tag>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
         <TeamOutlined style={{ color: 'var(--color-lavender)', fontSize: 13 }} />

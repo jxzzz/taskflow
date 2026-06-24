@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Modal, Form, Input } from 'antd';
+import { Modal, Form, Input, Switch } from 'antd';
+import { GlobalOutlined } from '@ant-design/icons';
 import type { CreateProjectRequest } from '@/types/project';
 
 interface CreateProjectModalProps {
@@ -8,7 +9,7 @@ interface CreateProjectModalProps {
   onSubmit: (values: CreateProjectRequest) => void;
   loading?: boolean;
   /** When set, switches to edit mode with initial values */
-  initialValues?: { name: string; description?: string; projectUrl?: string };
+  initialValues?: { name: string; description?: string; projectUrl?: string; isPublic?: boolean };
 }
 
 export default function CreateProjectModal({
@@ -27,6 +28,7 @@ export default function CreateProjectModal({
         form.setFieldsValue(initialValues);
       } else {
         form.resetFields();
+        form.setFieldsValue({ isPublic: false });
       }
     }
   }, [open, initialValues, form]);
@@ -56,6 +58,9 @@ export default function CreateProjectModal({
         </Form.Item>
         <Form.Item name="projectUrl" label="项目地址" rules={[{ max: 500 }, { type: 'url', message: '请输入有效的 URL 地址' }]}>
           <Input placeholder="https://github.com/org/repo（可选）" />
+        </Form.Item>
+        <Form.Item name="isPublic" label="公开项目" valuePropName="checked" extra="公开后所有人可见，私有仅自己可见">
+          <Switch checkedChildren={<><GlobalOutlined /> 公开</>} unCheckedChildren="私有" />
         </Form.Item>
       </Form>
     </Modal>

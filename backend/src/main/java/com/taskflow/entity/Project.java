@@ -28,5 +28,7 @@ public class Project {
 
     private String projectUrl;
 
+    private Boolean isPublic;
+
     private LocalDateTime createTime;
 }

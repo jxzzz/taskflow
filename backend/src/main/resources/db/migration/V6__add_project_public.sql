@@ -1,0 +1,1 @@
+ALTER TABLE project ADD COLUMN is_public TINYINT(1) DEFAULT 0 NOT NULL COMMENT '是否公开: 0=私有, 1=公开';

@@ -53,6 +53,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .projectUrl(request.getProjectUrl())
+                .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
                 .ownerId(currentUserId)
                 .build();
         projectMapper.insert(project);
@@ -72,37 +73,35 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public IPage<ProjectResponse> listMyProjects(int page, int size, Long currentUserId) {
-        // 1. 查询当前用户参与的所有 project_id
+        // 查询当前用户参与的所有 project_id
         List<ProjectMember> memberships = projectMemberMapper.selectList(
                 new LambdaQueryWrapper<ProjectMember>()
                         .eq(ProjectMember::getUserId, currentUserId));
-        Set<Long> projectIds = memberships.stream()
+        Set<Long> memberProjectIds = memberships.stream()
                 .map(ProjectMember::getProjectId)
                 .collect(Collectors.toSet());
 
-        if (projectIds.isEmpty()) {
-            // 没有参与任何看板，返回空分页
-            IPage<ProjectResponse> emptyPage = new Page<>(page, size);
-            emptyPage.setTotal(0);
-            emptyPage.setRecords(Collections.emptyList());
-            return emptyPage;
-        }
-
-        // 2. 分页查询这些看板
+        // 分页查询：用户参与的 OR 公开的
         Page<Project> pageParam = new Page<>(page, size);
-        IPage<Project> projectPage = projectMapper.selectPage(pageParam,
-                new LambdaQueryWrapper<Project>()
-                        .in(Project::getId, projectIds)
-                        .orderByDesc(Project::getCreateTime));
+        LambdaQueryWrapper<Project> query = new LambdaQueryWrapper<>();
+        if (!memberProjectIds.isEmpty()) {
+            query.and(w -> w.in(Project::getId, memberProjectIds).or().eq(Project::getIsPublic, true));
+        } else {
+            query.eq(Project::getIsPublic, true);
+        }
+        query.orderByDesc(Project::getCreateTime);
+        IPage<Project> projectPage = projectMapper.selectPage(pageParam, query);
 
-        // 3. 转换为 ProjectResponse
         return projectPage.convert(this::buildResponse);
     }
 
     @Override
     public ProjectResponse getById(Long id, Long currentUserId) {
         Project project = getProjectOrThrow(id);
-        checkMember(id, currentUserId);
+        // 公开项目允许任何人查看
+        if (!Boolean.TRUE.equals(project.getIsPublic())) {
+            checkMember(id, currentUserId);
+        }
         return buildDetailResponse(project);
     }
 
@@ -120,6 +119,9 @@ public class ProjectServiceImpl implements ProjectService {
         }
         if (request.getProjectUrl() != null) {
             project.setProjectUrl(request.getProjectUrl());
+        }
+        if (request.getIsPublic() != null) {
+            project.setIsPublic(request.getIsPublic());
         }
 
         projectMapper.updateById(project);
@@ -245,6 +247,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .name(project.getName())
                 .description(project.getDescription())
                 .projectUrl(project.getProjectUrl())
+                .isPublic(project.getIsPublic() != null ? project.getIsPublic() : false)
                 .ownerId(project.getOwnerId())
                 .ownerName(ownerName)
                 .memberCount(memberCount != null ? memberCount.intValue() : 0)

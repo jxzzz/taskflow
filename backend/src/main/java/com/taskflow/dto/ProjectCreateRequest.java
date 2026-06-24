@@ -21,4 +21,7 @@ public class ProjectCreateRequest {
     @Size(max = 500, message = "项目地址不能超过500个字符")
     @Schema(description = "项目地址（GitHub / 部署链接等）", example = "https://github.com/org/repo")
     private String projectUrl;
+
+    @Schema(description = "是否公开: 默认false仅自己可见, true所有人可见", example = "false")
+    private Boolean isPublic = false;
 }

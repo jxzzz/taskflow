@@ -40,6 +40,9 @@ public class ProjectResponse {
     @Schema(description = "项目地址（GitHub / 部署链接等）")
     private String projectUrl;
 
+    @Schema(description = "是否公开: 默认false仅自己可见, true所有人可见")
+    private Boolean isPublic;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

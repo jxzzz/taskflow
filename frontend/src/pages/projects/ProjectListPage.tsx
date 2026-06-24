@@ -119,7 +119,7 @@ export default function ProjectListPage() {
         onClose={() => setEditProject(null)}
         onSubmit={handleUpdate}
         loading={updateMutation.isPending}
-        initialValues={editProject ? { name: editProject.name, description: editProject.description, projectUrl: editProject.projectUrl } : undefined}
+        initialValues={editProject ? { name: editProject.name, description: editProject.description, projectUrl: editProject.projectUrl, isPublic: editProject.isPublic } : undefined}
       />
     </div>
   );

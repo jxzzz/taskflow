@@ -19,4 +19,7 @@ public class ProjectUpdateRequest {
     @Size(max = 500, message = "项目地址不能超过500个字符")
     @Schema(description = "项目地址")
     private String projectUrl;
+
+    @Schema(description = "是否公开: 默认false仅自己可见, true所有人可见")
+    private Boolean isPublic;
 }
