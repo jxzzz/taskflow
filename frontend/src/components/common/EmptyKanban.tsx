@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Button, Typography } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { ThunderboltOutlined } from '@ant-design/icons';
 
 const { Text, Title } = Typography;
 
 interface EmptyKanbanProps {
-  onCreateTask: () => void;
+  onBootstrap: () => Promise<void> | void;
 }
 
 /** Ghost column placeholder — suggests board structure */
@@ -57,6 +57,29 @@ function GhostColumn({ index }: { index: number }) {
         />
       ))}
     </div>
+  );
+}
+
+/** Column labels that fade in above ghost columns */
+const COLUMN_LABELS = ['To Do', 'Doing', 'Done'];
+
+function GhostLabel({ index, mounted }: { index: number; mounted: boolean }) {
+  return (
+    <span
+      style={{
+        fontSize: 11,
+        fontWeight: 600,
+        color: 'rgba(155, 151, 212, 0.3)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em',
+        fontFamily: "'DM Sans', sans-serif",
+        opacity: mounted ? 1 : 0,
+        transform: mounted ? 'translateY(0)' : 'translateY(6px)',
+        transition: `opacity 0.6s ease ${0.3 + index * 0.15}s, transform 0.6s ease ${0.3 + index * 0.15}s`,
+      }}
+    >
+      {COLUMN_LABELS[index]}
+    </span>
   );
 }
 
@@ -383,14 +406,23 @@ function RocketIllustration() {
   );
 }
 
-export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
+export default function EmptyKanban({ onBootstrap }: EmptyKanbanProps) {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Stagger entrance
     const t = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(t);
   }, []);
+
+  const handleClick = async () => {
+    setLoading(true);
+    try {
+      await onBootstrap();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -406,7 +438,7 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
         padding: '48px 24px',
       }}
     >
-      {/* ====== GHOST COLUMNS BACKGROUND ====== */}
+      {/* ====== GHOST COLUMNS + LABELS ====== */}
       <div
         style={{
           position: 'absolute',
@@ -422,7 +454,10 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
         }}
       >
         {[0, 1, 2].map((i) => (
-          <GhostColumn key={i} index={i} />
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <GhostLabel index={i} mounted={mounted} />
+            <GhostColumn index={i} />
+          </div>
         ))}
       </div>
 
@@ -457,7 +492,7 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
             lineHeight: 1.3,
           }}
         >
-          Start your first project
+          准备好开始了吗？
         </Title>
 
         {/* Subtitle */}
@@ -466,20 +501,52 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
             fontSize: 14,
             color: 'var(--color-ink-tertiary)',
             lineHeight: 1.6,
-            marginBottom: 28,
+            marginBottom: 10,
             display: 'block',
-            maxWidth: 340,
+            maxWidth: 360,
           }}
         >
-          Create a task to kick off your Kanban board. Organize, prioritize, and ship with clarity.
+          一键创建看板，自动生成 To Do、Doing、Done 三列及示例任务
         </Text>
 
-        {/* CTA Button — vibrant blue as requested */}
+        {/* Preview of what will be created */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            marginBottom: 24,
+            fontSize: 11,
+            color: 'var(--color-ink-disabled)',
+            fontFamily: "'DM Sans', sans-serif",
+          }}
+        >
+          {[
+            { label: 'To Do', color: '#9b97d4' },
+            { label: 'Doing', color: '#f0a850' },
+            { label: 'Done', color: '#9bbc9e' },
+          ].map((col) => (
+            <span
+              key={col.label}
+              style={{
+                padding: '2px 10px',
+                borderRadius: 9999,
+                background: `${col.color}18`,
+                color: col.color,
+                fontWeight: 500,
+              }}
+            >
+              {col.label}
+            </span>
+          ))}
+        </div>
+
+        {/* CTA Button */}
         <Button
           type="primary"
           size="large"
-          icon={<PlusOutlined />}
-          onClick={onCreateTask}
+          icon={<ThunderboltOutlined />}
+          onClick={handleClick}
+          loading={loading}
           className="empty-kanban-cta"
           style={{
             height: 48,
@@ -495,6 +562,7 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
             transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
           }}
           onMouseEnter={(e) => {
+            if (loading) return;
             e.currentTarget.style.transform = 'translateY(-2px)';
             e.currentTarget.style.boxShadow =
               '0 4px 14px rgba(74, 133, 217, 0.32), 0 10px 36px rgba(74, 133, 217, 0.22), 0 0 0 8px rgba(74, 133, 217, 0.08)';
@@ -505,10 +573,10 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
               '0 2px 8px rgba(74, 133, 217, 0.25), 0 6px 24px rgba(74, 133, 217, 0.18), 0 0 0 4px rgba(74, 133, 217, 0.06)';
           }}
         >
-          + Create Task
+          初始化看板
         </Button>
 
-        {/* Subtle hint */}
+        {/* Hint */}
         <Text
           style={{
             fontSize: 11.5,
@@ -517,7 +585,7 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
             letterSpacing: '0.03em',
           }}
         >
-          Press{' '}
+          按{' '}
           <kbd
             style={{
               display: 'inline-block',
@@ -533,7 +601,7 @@ export default function EmptyKanban({ onCreateTask }: EmptyKanbanProps) {
           >
             N
           </kbd>{' '}
-          or click the button above to get started
+          快速初始化
         </Text>
       </div>
     </div>

@@ -86,30 +86,11 @@ export default function KanbanCard({
       className="kanban-card"
       style={style}
       {...attributes}
+      {...listeners}
       onClick={isOverlay ? undefined : isDragging ? undefined : onClick}
       onMouseEnter={isOverlay ? undefined : isDragging ? undefined : (e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
       onMouseLeave={isOverlay ? undefined : (e) => { e.currentTarget.style.boxShadow = 'var(--shadow-xs)'; }}
     >
-      {/* Drag handle — left edge grip, only here activates drag */}
-      <div
-        {...listeners}
-        style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0,
-          width: 12, cursor: 'grab',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          opacity: 0, transition: 'opacity 0.15s ease',
-          zIndex: 1,
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.5'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0'; }}
-        onPointerDown={(e) => { e.currentTarget.style.opacity = '0.8'; }}
-        title="拖拽排序"
-      >
-        <span style={{
-          width: 2, height: 16, borderRadius: 1,
-          background: 'var(--color-lavender)',
-        }} />
-      </div>
 
       {/* Cover color strip */}
       {hasCover && (
@@ -141,8 +122,8 @@ export default function KanbanCard({
           </div>
         )}
 
-        {/* Checklist Progress — custom bar, no antd Progress */}
-        {!isOverlay && hasChecklist && (
+        {/* Checklist Progress */}
+        {hasChecklist && (
           <div style={{ marginBottom: 10 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
               <CheckSquareOutlined style={{
