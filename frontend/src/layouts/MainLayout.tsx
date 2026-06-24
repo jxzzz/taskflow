@@ -1,10 +1,6 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Layout, Menu } from 'antd';
-import {
-  DashboardOutlined,
-  ProjectOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
+import { DashboardOutlined, ProjectOutlined, UserOutlined } from '@ant-design/icons';
 import Header from './Header';
 import { useAppStore } from '@/stores/appStore';
 import { ROUTES } from '@/router/routes';
@@ -15,29 +11,15 @@ const { Sider, Content } = Layout;
 type MenuItem = Required<MenuProps>['items'][number];
 
 const menuItems: MenuItem[] = [
-  {
-    key: ROUTES.DASHBOARD,
-    icon: <DashboardOutlined />,
-    label: '控制台',
-  },
-  {
-    key: ROUTES.PROJECTS,
-    icon: <ProjectOutlined />,
-    label: '看板',
-  },
-  {
-    key: ROUTES.USERS,
-    icon: <UserOutlined />,
-    label: '用户管理',
-  },
+  { key: ROUTES.DASHBOARD, icon: <DashboardOutlined />, label: '控制台' },
+  { key: ROUTES.PROJECTS, icon: <ProjectOutlined />, label: '看板' },
+  { key: ROUTES.USERS, icon: <UserOutlined />, label: '用户' },
 ];
 
 export default function MainLayout() {
   const { sidebarCollapsed } = useAppStore();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // 获取当前选中的菜单项
   const selectedKey = '/' + (location.pathname.split('/')[1] || 'dashboard');
 
   return (
@@ -46,52 +28,50 @@ export default function MainLayout() {
         trigger={null}
         collapsible
         collapsed={sidebarCollapsed}
-        width={240}
+        width={248}
+        collapsedWidth={68}
         style={{
-          background: '#001529',
-          borderRight: 0,
+          background: 'var(--color-bg-base)',
+          borderRight: '1px solid var(--color-border-subtle)',
+          overflow: 'hidden',
         }}
       >
         {/* Logo */}
         <div
           style={{
-            height: 64,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: sidebarCollapsed ? 16 : 20,
-            fontWeight: 700,
-            letterSpacing: 1,
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            height: 56, display: 'flex', alignItems: 'center', gap: 11,
+            padding: sidebarCollapsed ? '0' : '0 22px',
+            justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+            borderBottom: '1px solid var(--color-border-subtle)',
           }}
         >
-          {sidebarCollapsed ? 'TF' : 'TaskFlow'}
+          {/* Flower/leaf mark */}
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect width="28" height="28" rx="8" fill="#9b97d4" fillOpacity="0.12" />
+            <circle cx="14" cy="10" r="3" stroke="#9b97d4" strokeWidth="1.6" />
+            <path d="M14 13v8" stroke="#9b97d4" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M10 19l4-3 4 3" stroke="#9b97d4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {!sidebarCollapsed && (
+            <span style={{ fontFamily: "'Newsreader', Georgia, serif", fontSize: 20, fontWeight: 600, color: '#9b97d4', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+              TaskFlow
+            </span>
+          )}
         </div>
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          items={menuItems}
+        <Menu mode="inline" selectedKeys={[selectedKey]} items={menuItems}
           onClick={({ key }) => navigate(key)}
+          style={{ background: 'transparent', borderInlineEnd: 'none', padding: '16px 6px' }}
         />
       </Sider>
 
       <Layout>
         <Header />
-        <Content
-          style={{
-            margin: 24,
-            padding: 24,
-            background: '#fff',
-            borderRadius: 8,
-            minHeight: 280,
-            overflow: 'auto',
-          }}
-        >
-          <Outlet />
-        </Content>
+        <div style={{ flex: 1, overflow: 'auto', background: 'var(--color-bg-deep)' }}>
+          <div style={{ padding: 32, maxWidth: 1400, margin: '0 auto' }}>
+            <Content><Outlet /></Content>
+          </div>
+        </div>
       </Layout>
     </Layout>
   );

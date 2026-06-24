@@ -6,40 +6,26 @@ const { Title } = Typography;
 
 interface PageHeaderProps {
   title: string;
+  subtitle?: string;
   breadcrumb?: { title: string; path?: string }[];
   extra?: React.ReactNode;
 }
 
-/** 页面标题 + 面包屑 + 操作区 */
-export default function PageHeader({ title, breadcrumb, extra }: PageHeaderProps) {
+export default function PageHeader({ title, subtitle, breadcrumb, extra }: PageHeaderProps) {
   const items = breadcrumb?.map((item) =>
-    item.path
-      ? { title: <Link to={item.path}>{item.title}</Link> }
-      : { title: item.title },
+    item.path ? { title: <Link to={item.path}>{item.title}</Link> } : { title: item.title },
   );
 
   return (
-    <div
-      style={{
-        marginBottom: 24,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-      }}
-    >
+    <div style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
       <div>
         {breadcrumb && (
-          <Breadcrumb
-            items={[
-              { title: <Link to="/dashboard"><HomeOutlined /></Link> },
-              ...(items || []),
-            ]}
-            style={{ marginBottom: 8 }}
-          />
+          <Breadcrumb items={[{ title: <Link to="/dashboard"><HomeOutlined /></Link> }, ...(items || [])]} style={{ marginBottom: 6 }} />
         )}
-        <Title level={3} style={{ margin: 0 }}>
+        <Title level={4} style={{ margin: 0, fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, fontSize: 24, color: '#2b2825' }}>
           {title}
         </Title>
+        {subtitle && <Typography.Text style={{ color: 'rgba(43,40,37,0.45)', fontSize: 13.5, display: 'block', marginTop: 4 }}>{subtitle}</Typography.Text>}
       </div>
       {extra && <div>{extra}</div>}
     </div>

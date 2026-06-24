@@ -1,5 +1,71 @@
 :root {
-  --sidebar-width: 240px;
-  --header-height: 64px;
+  /* === Layout === */
+  --sidebar-width: 248px;
+  --sidebar-collapsed-width: 68px;
+  --header-height: 56px;
   --content-max-width: 1400px;
+
+  /* === Soft Pastel Atelier Palette === */
+  --color-bg-deep:       #f6f4f0;   /* 最深暖底 — 全局背景 */
+  --color-bg-base:        #faf9f6;   /* 基底 — 侧边栏 */
+  --color-bg-elevated:    #ffffff;   /* 抬升 — 卡片 */
+  --color-bg-surface:     #f3f1ed;   /* 表面 — 输入框/hover */
+  --color-bg-hover:       #ebe8e2;   /* hover */
+
+  --color-border-subtle:  rgba(0, 0, 0, 0.04);
+  --color-border-default: rgba(0, 0, 0, 0.07);
+  --color-border-strong:  rgba(0, 0, 0, 0.12);
+
+  /* Warm text */
+  --color-ink-primary:    #2b2825;
+  --color-ink-secondary:  rgba(43, 40, 37, 0.58);
+  --color-ink-tertiary:   rgba(43, 40, 37, 0.36);
+  --color-ink-disabled:   rgba(43, 40, 37, 0.18);
+
+  /* Pastel accents */
+  --color-lavender:       #9b97d4;   /* 薰衣草 — 主色 */
+  --color-lavender-soft:  rgba(155, 151, 212, 0.10);
+  --color-lavender-hover: #827ec4;
+
+  --color-coral:          #e8a09c;   /* 蜜桃 */
+  --color-coral-soft:     rgba(232, 160, 156, 0.10);
+
+  --color-sage:           #9bbc9e;   /* 鼠尾草 */
+  --color-sage-soft:      rgba(155, 188, 158, 0.10);
+
+  --color-butter:         #e8cf8e;   /* 黄油 */
+  --color-butter-soft:    rgba(232, 207, 142, 0.12);
+
+  --color-sky:            #99bcdb;   /* 浅天蓝 */
+  --color-sky-soft:       rgba(153, 188, 219, 0.10);
+
+  /* Pill tag pastels */
+  --tag-lavender: #e8e6f8; --tag-lavender-text: #6b67a8;
+  --tag-coral:    #fae3e1; --tag-coral-text:    #b86d6a;
+  --tag-sage:     #e2efe3; --tag-sage-text:     #6d8a6f;
+  --tag-butter:   #faf0da; --tag-butter-text:   #9e853d;
+  --tag-sky:      #e1edf6; --tag-sky-text:      #5a809b;
+  --tag-rose:     #f2dee6; --tag-rose-text:     #9e6d80;
+
+  /* Radius — soft, pill, rounded */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Shadows — soft & airy */
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 2px 4px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 4px 8px rgba(0, 0, 0, 0.06), 0 16px 40px rgba(0, 0, 0, 0.10);
+
+  /* Transitions */
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:  150ms;
+  --duration-normal: 280ms;
+  --duration-slow:   450ms;
 }

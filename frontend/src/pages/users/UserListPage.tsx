@@ -1,20 +1,14 @@
 import { useState } from 'react';
-import {
-  Table,
-  Button,
-  Drawer,
-  Form,
-  Input,
-  Space,
-  Modal,
-  Tag,
-} from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Drawer, Form, Input, Space, Modal, Avatar } from 'antd';
+import { EditOutlined, DeleteOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import PageHeader from '@/components/common/PageHeader';
 import { useUsers, useDeleteUser, useUpdateUser } from '@/hooks/useUsers';
 import type { UserInfo } from '@/types/auth';
 import type { ColumnsType } from 'antd/es/table';
+
+const avatarPalette = ['#9b97d4', '#e8a09c', '#99bcdb', '#9bbc9e', '#e8cf8e', '#c4a0d4'];
+const avatarColor = (name: string) => avatarPalette[name.charCodeAt(0) % avatarPalette.length];
 
 export default function UserListPage() {
   const [page, setPage] = useState(1);
@@ -27,86 +21,32 @@ export default function UserListPage() {
   const updateMutation = useUpdateUser();
   const [form] = Form.useForm();
 
-  const handleEdit = (user: UserInfo) => {
-    setEditUser(user);
-    form.setFieldsValue({ username: user.username });
-    setDrawerOpen(true);
-  };
-
-  const handleUpdate = () => {
-    form.validateFields().then((values) => {
-      if (editUser) {
-        updateMutation.mutate(
-          { id: editUser.id, data: values },
-          { onSuccess: () => setDrawerOpen(false) },
-        );
-      }
-    });
-  };
-
-  const handleDelete = (user: UserInfo) => {
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定要删除用户「${user.username}」吗？此操作不可撤销。`,
-      okText: '删除',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: () => deleteMutation.mutate(user.id),
-    });
-  };
+  const handleEdit = (user: UserInfo) => { setEditUser(user); form.setFieldsValue({ username: user.username }); setDrawerOpen(true); };
+  const handleUpdate = () => { form.validateFields().then((v) => { if (editUser) updateMutation.mutate({ id: editUser.id, data: v }, { onSuccess: () => setDrawerOpen(false) }); }); };
+  const handleDelete = (u: UserInfo) => { Modal.confirm({ title: '确认删除', content: `确定删除「${u.username}」吗？`, okText: '删除', okType: 'danger', cancelText: '取消', onOk: () => deleteMutation.mutate(u.id) }); };
 
   const columns: ColumnsType<UserInfo> = [
     {
-      title: 'ID',
-      dataIndex: 'id',
-      width: 80,
-    },
-    {
-      title: '用户名',
-      dataIndex: 'username',
-      render: (text) => <strong>{text}</strong>,
-    },
-    {
-      title: '头像',
-      dataIndex: 'avatar',
-      width: 100,
-      render: (avatar) =>
-        avatar ? (
-          <img src={avatar} alt="" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-        ) : (
-          <Tag>未设置</Tag>
-        ),
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createTime',
-      width: 180,
-      render: (t) => (t ? dayjs(t).format('YYYY-MM-DD HH:mm') : '-'),
-    },
-    {
-      title: '更新时间',
-      dataIndex: 'updateTime',
-      width: 180,
-      render: (t) => (t ? dayjs(t).format('YYYY-MM-DD HH:mm') : '-'),
-    },
-    {
-      title: '操作',
-      key: 'actions',
-      width: 160,
-      render: (_, record) => (
+      title: '用户', dataIndex: 'username', width: 280,
+      render: (name: string, record: UserInfo) => (
         <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)}>
-            编辑
-          </Button>
-          <Button
-            type="link"
-            danger
-            size="small"
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record)}
-          >
-            删除
-          </Button>
+          <Avatar size={36} icon={<UserOutlined />} src={record.avatar}
+            style={{ backgroundColor: avatarColor(name), flexShrink: 0 }} />
+          <div>
+            <div style={{ fontWeight: 600 }}>{name}</div>
+            <div style={{ fontSize: 11, color: 'rgba(43,40,37,0.35)' }}>ID: {record.id}</div>
+          </div>
+        </Space>
+      ),
+    },
+    { title: '创建时间', dataIndex: 'createTime', width: 170, render: (t: string) => t ? dayjs(t).format('YYYY-MM-DD HH:mm') : '—' },
+    { title: '更新时间', dataIndex: 'updateTime', width: 170, render: (t: string) => t ? dayjs(t).format('YYYY-MM-DD HH:mm') : '—' },
+    {
+      title: '操作', key: 'actions', width: 140,
+      render: (_, record) => (
+        <Space size="small">
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record)} style={{ color: 'var(--color-ink-secondary)' }}>编辑</Button>
+          <Button type="link" danger size="small" icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>删除</Button>
         </Space>
       ),
     },
@@ -114,59 +54,25 @@ export default function UserListPage() {
 
   return (
     <div>
-      <PageHeader title="用户管理" />
+      <PageHeader title="用户管理" subtitle={`共 ${data?.total ?? 0} 位用户`} />
 
-      <Table
-        rowKey="id"
-        columns={columns}
-        dataSource={data?.records}
-        loading={isFetching}
-        pagination={{
-          current: page,
-          pageSize,
-          total: data?.total || 0,
-          showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`,
-          onChange: (p, ps) => {
-            setPage(p);
-            setPageSize(ps);
-          },
-        }}
-      />
+      {data?.records?.length === 0 && !isFetching ? (
+        <div style={{ textAlign: 'center', padding: 72 }}>
+          <div style={{ fontSize: 48, marginBottom: 12, opacity: 0.3 }}>👥</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#2b2825', marginBottom: 4 }}>暂无用户</div>
+          <span style={{ color: 'rgba(43,40,37,0.4)', fontSize: 13 }}>用户注册后将显示在这里</span>
+        </div>
+      ) : (
+        <Table rowKey="id" columns={columns} dataSource={data?.records} loading={isFetching}
+          pagination={{ current: page, pageSize, total: data?.total || 0, showSizeChanger: true, showTotal: (t) => `共 ${t} 条`, onChange: (p, ps) => { setPage(p); setPageSize(ps); } }} />
+      )}
 
-      {/* 编辑用户 Drawer */}
-      <Drawer
-        title="编辑用户"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        width={400}
-        extra={
-          <Button type="primary" onClick={handleUpdate} loading={updateMutation.isPending}>
-            保存
-          </Button>
-        }
-      >
+      <Drawer title="编辑用户" open={drawerOpen} onClose={() => setDrawerOpen(false)} width={400}
+        extra={<Button type="primary" onClick={handleUpdate} loading={updateMutation.isPending}>保存</Button>}>
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="username"
-            label="用户名"
-            rules={[
-              { required: true, message: '请输入用户名' },
-              { min: 3, max: 50, message: '3-50 个字符' },
-            ]}
-          >
-            <Input placeholder="输入新用户名" />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            label="新密码（留空不修改）"
-            rules={[{ min: 6, max: 100, message: '6-100 个字符' }]}
-          >
-            <Input.Password placeholder="输入新密码" />
-          </Form.Item>
-          <Form.Item name="avatar" label="头像 URL">
-            <Input placeholder="https://example.com/avatar.png" />
-          </Form.Item>
+          <Form.Item name="username" label="用户名" rules={[{ required: true }, { min: 3, max: 50 }]}><Input /></Form.Item>
+          <Form.Item name="password" label="新密码（留空不修改）" rules={[{ min: 6, max: 100 }]}><Input.Password placeholder="输入新密码" /></Form.Item>
+          <Form.Item name="avatar" label="头像 URL"><Input placeholder="https://example.com/avatar.png" /></Form.Item>
         </Form>
       </Drawer>
     </div>
