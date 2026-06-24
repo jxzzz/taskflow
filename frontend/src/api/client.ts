@@ -46,7 +46,15 @@ function onResponseRejected(error: AxiosError) {
       const returnUrl = encodeURIComponent(window.location.pathname);
       window.location.href = `/auth/login?returnUrl=${returnUrl}`;
     }
+    return Promise.reject(error);
   }
+
+  // Extract backend error message from response body
+  const body = error.response?.data as ApiResponse<unknown> | undefined;
+  if (body?.message) {
+    return Promise.reject(new ApiError(body.code ?? error.response!.status, body.message));
+  }
+
   return Promise.reject(error);
 }
 
