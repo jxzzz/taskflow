@@ -104,6 +104,19 @@ services:
       - backend
     restart: always
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taskflow-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - backend
+    restart: always
+
 volumes:
   mysql_data:
   redis_data:

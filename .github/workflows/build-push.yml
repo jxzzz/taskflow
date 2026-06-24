@@ -3,11 +3,37 @@ name: Build & Push
 on:
   push:
     branches: ["main"]
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - "docker-compose*.yml"
+      - ".github/workflows/**"
 
 jobs:
-  build-and-push:
+  changed-files:
     runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - "backend/**"
+              - "docker-compose*.yml"
+              - ".github/workflows/**"
+            frontend:
+              - "frontend/**"
+              - "docker-compose*.yml"
+              - ".github/workflows/**"
 
+  backend:
+    needs: changed-files
+    if: ${{ needs.changed-files.outputs.backend == 'true' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -18,7 +44,7 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Build and push backend
         uses: docker/build-push-action@v6
         with:
           context: ./backend
@@ -27,3 +53,27 @@ jobs:
           tags: |
             crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
             crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:${{ github.sha }}
+
+  frontend:
+    needs: changed-files
+    if: ${{ needs.changed-files.outputs.frontend == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Alibaba Cloud ACR
+        uses: docker/login-action@v3
+        with:
+          registry: crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-frontend:latest
+            crpi-ytlg6tfv9wxn5mfu.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-frontend:${{ github.sha }}

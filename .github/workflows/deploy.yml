@@ -17,12 +17,13 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            echo "=== Pulling latest image ==="
+            echo "=== Pulling latest images ==="
             docker pull crpi-ytlg6tfv9wxn5mfu-vpc.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-backend:latest
+            docker pull crpi-ytlg6tfv9wxn5mfu-vpc.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-frontend:latest
 
             echo "=== Restarting containers ==="
             cd ~/code/taskflow
-            docker compose -f docker-compose.prod.yml up -d --no-deps backend
+            docker compose -f docker-compose.prod.yml up -d --no-deps backend frontend
 
             echo "=== Cleaning old images ==="
             docker image prune -f

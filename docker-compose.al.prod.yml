@@ -103,6 +103,17 @@ services:
       - backend
     restart: always
 
+  frontend:
+    image: crpi-ytlg6tfv9wxn5mfu-vpc.cn-shanghai.personal.cr.aliyuncs.com/mxy-x/taskflow-frontend:latest
+    container_name: taskflow-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - backend
+    restart: always
+
 volumes:
   mysql_data:
   redis_data:
