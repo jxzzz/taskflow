@@ -1,7 +1,10 @@
 name: Deploy
 
 on:
-  workflow_dispatch: # 手动触发，等 SSH 配置好再用
+  workflow_run:
+    workflows: ["Build & Push"]
+    types: [completed]
+  workflow_dispatch: {}
 
 jobs:
   deploy:
