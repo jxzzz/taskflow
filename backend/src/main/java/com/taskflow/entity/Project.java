@@ -26,5 +26,7 @@ public class Project {
 
     private Long ownerId;
 
+    private String projectUrl;
+
     private LocalDateTime createTime;
 }

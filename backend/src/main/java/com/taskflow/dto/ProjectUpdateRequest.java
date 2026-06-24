@@ -15,4 +15,8 @@ public class ProjectUpdateRequest {
     @Size(max = 255, message = "看板描述不能超过255个字符")
     @Schema(description = "看板描述")
     private String description;
+
+    @Size(max = 500, message = "项目地址不能超过500个字符")
+    @Schema(description = "项目地址")
+    private String projectUrl;
 }

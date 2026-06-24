@@ -17,4 +17,8 @@ public class ProjectCreateRequest {
     @Size(max = 255, message = "看板描述不能超过255个字符")
     @Schema(description = "看板描述", example = "产品研发团队任务看板")
     private String description;
+
+    @Size(max = 500, message = "项目地址不能超过500个字符")
+    @Schema(description = "项目地址（GitHub / 部署链接等）", example = "https://github.com/org/repo")
+    private String projectUrl;
 }

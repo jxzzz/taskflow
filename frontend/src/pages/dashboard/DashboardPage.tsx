@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { Row, Col, Typography, Card, Tag, Skeleton, Modal, Form, Input, message } from 'antd';
+import { Row, Col, Typography, Card, Tag, Skeleton, message } from 'antd';
 import { ProjectOutlined, UserOutlined, CheckSquareOutlined, ArrowRightOutlined, PlusOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
 import QuickActionFab from '@/components/common/QuickActionFab';
 import { useQuickActionItems } from '@/components/common/QuickActionFab';
+import CreateProjectModal from '@/components/common/CreateProjectModal';
 import { useDashboard } from '@/hooks/useDashboard';
 import { useCreateProject } from '@/hooks/useProjects';
 import { ROUTES } from '@/router/routes';
@@ -27,19 +28,11 @@ export default function DashboardPage() {
 
   // Create project modal
   const [createOpen, setCreateOpen] = useState(false);
-  const [createForm] = Form.useForm<CreateProjectRequest>();
   const createMutation = useCreateProject();
 
-  const handleCreateProject = useCallback(() => {
-    createForm.validateFields().then((v) => {
-      createMutation.mutate(v, {
-        onSuccess: () => {
-          setCreateOpen(false);
-          createForm.resetFields();
-        },
-      });
-    });
-  }, [createForm, createMutation]);
+  const handleCreateProject = useCallback((values: CreateProjectRequest) => {
+    createMutation.mutate(values, { onSuccess: () => setCreateOpen(false) });
+  }, [createMutation]);
 
   // Theme cycling
   const handleToggleTheme = useCallback(() => {
@@ -247,24 +240,12 @@ export default function DashboardPage() {
       <QuickActionFab items={quickActionItems} />
 
       {/* Create project modal */}
-      <Modal
-        title="新建项目"
+      <CreateProjectModal
         open={createOpen}
-        onOk={handleCreateProject}
-        onCancel={() => setCreateOpen(false)}
-        confirmLoading={createMutation.isPending}
-        okText="创建"
-        cancelText="取消"
-      >
-        <Form form={createForm} layout="vertical">
-          <Form.Item name="name" label="项目名称" rules={[{ required: true, message: '请输入项目名称' }, { max: 100 }]}>
-            <Input placeholder="例如：产品研发" />
-          </Form.Item>
-          <Form.Item name="description" label="描述" rules={[{ max: 255 }]}>
-            <Input.TextArea rows={3} placeholder="项目用途说明（可选）" />
-          </Form.Item>
-        </Form>
-      </Modal>
+        onClose={() => setCreateOpen(false)}
+        onSubmit={handleCreateProject}
+        loading={createMutation.isPending}
+      />
     </div>
   );
 }

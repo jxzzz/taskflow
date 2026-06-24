@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Row, Col, Button, Modal, Form, Input, Typography, Space, Tag } from 'antd';
+import { Row, Col, Button, Modal, Typography, Space, Tag } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, TeamOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
+import CreateProjectModal from '@/components/common/CreateProjectModal';
 import { useProjects, useCreateProject, useDeleteProject, useUpdateProject } from '@/hooks/useProjects';
-import type { Project, CreateProjectRequest, UpdateProjectRequest } from '@/types/project';
+import type { Project, CreateProjectRequest } from '@/types/project';
 
 const { Text } = Typography;
 
@@ -29,8 +30,6 @@ const tagStyles = [
 export default function ProjectListPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
-  const [createForm] = Form.useForm<CreateProjectRequest>();
-  const [editForm] = Form.useForm<UpdateProjectRequest>();
 
   const { data, isFetching } = useProjects(1, 100);
   const createMutation = useCreateProject();
@@ -38,16 +37,11 @@ export default function ProjectListPage() {
   const updateMutation = useUpdateProject();
   const navigate = useNavigate();
 
-  const handleCreate = () => {
-    createForm.validateFields().then((v) => {
-      createMutation.mutate(v, { onSuccess: () => { setCreateOpen(false); createForm.resetFields(); } });
-    });
+  const handleCreate = (values: CreateProjectRequest) => {
+    createMutation.mutate(values, { onSuccess: () => setCreateOpen(false) });
   };
-  const handleEdit = (p: Project) => { setEditProject(p); editForm.setFieldsValue({ name: p.name, description: p.description }); };
-  const handleUpdate = () => {
-    editForm.validateFields().then((v) => {
-      if (editProject) updateMutation.mutate({ id: editProject.id, data: v }, { onSuccess: () => setEditProject(null) });
-    });
+  const handleUpdate = (values: CreateProjectRequest) => {
+    if (editProject) updateMutation.mutate({ id: editProject.id, data: values }, { onSuccess: () => setEditProject(null) });
   };
   const handleDelete = (p: Project) => {
     Modal.confirm({ title: '删除项目', content: `确定删除「${p.name}」？所有列表和任务将被级联删除。`, okText: '删除', okType: 'danger', cancelText: '取消', onOk: () => deleteMutation.mutate(p.id) });
@@ -93,7 +87,7 @@ export default function ProjectListPage() {
                   </Space>
                   <Space size={2}>
                     <Button type="text" size="small" icon={<EditOutlined />}
-                      onClick={(e) => { e.stopPropagation(); handleEdit(project); }} style={{ color: 'rgba(43,40,37,0.4)' }} />
+                      onClick={(e) => { e.stopPropagation(); setEditProject(project); }} style={{ color: 'rgba(43,40,37,0.4)' }} />
                     <Button type="text" size="small" icon={<DeleteOutlined />}
                       onClick={(e) => { e.stopPropagation(); handleDelete(project); }} style={{ color: 'rgba(43,40,37,0.4)' }} />
                   </Space>
@@ -113,19 +107,20 @@ export default function ProjectListPage() {
         </div>
       )}
 
-      <Modal title="创建项目" open={createOpen} onOk={handleCreate} onCancel={() => setCreateOpen(false)} confirmLoading={createMutation.isPending} okText="创建" cancelText="取消">
-        <Form form={createForm} layout="vertical">
-          <Form.Item name="name" label="项目名称" rules={[{ required: true }, { max: 100 }]}><Input placeholder="例如：产品研发" /></Form.Item>
-          <Form.Item name="description" label="描述" rules={[{ max: 255 }]}><Input.TextArea rows={3} placeholder="项目用途说明（可选）" /></Form.Item>
-        </Form>
-      </Modal>
+      <CreateProjectModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSubmit={handleCreate}
+        loading={createMutation.isPending}
+      />
 
-      <Modal title={`编辑「${editProject?.name}」`} open={!!editProject} onOk={handleUpdate} onCancel={() => setEditProject(null)} confirmLoading={updateMutation.isPending} okText="保存" cancelText="取消">
-        <Form form={editForm} layout="vertical">
-          <Form.Item name="name" label="项目名称" rules={[{ required: true }, { max: 100 }]}><Input /></Form.Item>
-          <Form.Item name="description" label="描述" rules={[{ max: 255 }]}><Input.TextArea rows={3} /></Form.Item>
-        </Form>
-      </Modal>
+      <CreateProjectModal
+        open={!!editProject}
+        onClose={() => setEditProject(null)}
+        onSubmit={handleUpdate}
+        loading={updateMutation.isPending}
+        initialValues={editProject ? { name: editProject.name, description: editProject.description, projectUrl: editProject.projectUrl } : undefined}
+      />
     </div>
   );
 }

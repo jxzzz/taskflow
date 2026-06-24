@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectApi } from '@/api/projects';
 import { App } from 'antd';
+import type { UpdateProjectRequest } from '@/types/project';
 
 /** 项目列表 */
 export function useProjects(page = 1, size = 20) {
@@ -30,6 +31,7 @@ export function useCreateProject() {
     onSuccess: (project) => {
       message.success(`项目「${project.name}」创建成功`);
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (error: Error) => {
       message.error(error.message || '创建失败');
@@ -43,12 +45,13 @@ export function useUpdateProject() {
   const { message } = App.useApp();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: { name?: string; description?: string } }) =>
+    mutationFn: ({ id, data }: { id: number; data: UpdateProjectRequest }) =>
       projectApi.update(id, data),
     onSuccess: (project) => {
       message.success('项目已更新');
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects', project.id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (error: Error) => {
       message.error(error.message || '更新失败');
@@ -66,6 +69,7 @@ export function useDeleteProject() {
     onSuccess: () => {
       message.success('项目已删除');
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
     onError: (error: Error) => {
       message.error(error.message || '删除失败');

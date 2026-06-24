@@ -52,6 +52,7 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = Project.builder()
                 .name(request.getName())
                 .description(request.getDescription())
+                .projectUrl(request.getProjectUrl())
                 .ownerId(currentUserId)
                 .build();
         projectMapper.insert(project);
@@ -116,6 +117,9 @@ public class ProjectServiceImpl implements ProjectService {
         }
         if (request.getDescription() != null) {
             project.setDescription(request.getDescription());
+        }
+        if (request.getProjectUrl() != null) {
+            project.setProjectUrl(request.getProjectUrl());
         }
 
         projectMapper.updateById(project);
@@ -240,6 +244,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .id(project.getId())
                 .name(project.getName())
                 .description(project.getDescription())
+                .projectUrl(project.getProjectUrl())
                 .ownerId(project.getOwnerId())
                 .ownerName(ownerName)
                 .memberCount(memberCount != null ? memberCount.intValue() : 0)

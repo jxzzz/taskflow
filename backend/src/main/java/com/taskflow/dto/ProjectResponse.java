@@ -37,6 +37,9 @@ public class ProjectResponse {
     @Schema(description = "列表数量")
     private Integer listCount;
 
+    @Schema(description = "项目地址（GitHub / 部署链接等）")
+    private String projectUrl;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

@@ -1,0 +1,1 @@
+ALTER TABLE project ADD COLUMN project_url VARCHAR(500) DEFAULT NULL COMMENT '项目地址';
