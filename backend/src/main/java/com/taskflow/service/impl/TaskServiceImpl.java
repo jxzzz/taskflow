@@ -1,6 +1,7 @@
 package com.taskflow.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.taskflow.dto.ReorderItem;
@@ -130,9 +131,11 @@ public class TaskServiceImpl implements TaskService {
         TaskList list = taskListMapper.selectById(task.getListId());
         checkMemberByProjectId(list.getProjectId(), currentUserId);
 
-        // 软删除
-        task.setIsDeleted(1);
-        taskMapper.updateById(task);
+        // 软删除：用 setSql 绕过 MyBatis-Plus @TableLogic 对 update 语句的字段拦截
+        taskMapper.update(null,
+                new LambdaUpdateWrapper<Task>()
+                        .eq(Task::getId, id)
+                        .setSql("is_deleted = 1"));
     }
 
     @Override

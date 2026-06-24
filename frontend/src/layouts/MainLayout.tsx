@@ -39,7 +39,10 @@ export default function MainLayout() {
         {/* Logo */}
         <div
           style={{
-            height: 56, display: 'flex', alignItems: 'center', gap: 11,
+            height: 56,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 11,
             padding: sidebarCollapsed ? '0' : '0 22px',
             justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
             borderBottom: '1px solid var(--color-border-subtle)',
@@ -50,16 +53,34 @@ export default function MainLayout() {
             <rect width="28" height="28" rx="8" fill="#9b97d4" fillOpacity="0.12" />
             <circle cx="14" cy="10" r="3" stroke="#9b97d4" strokeWidth="1.6" />
             <path d="M14 13v8" stroke="#9b97d4" strokeWidth="1.6" strokeLinecap="round" />
-            <path d="M10 19l4-3 4 3" stroke="#9b97d4" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <path
+              d="M10 19l4-3 4 3"
+              stroke="#9b97d4"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           {!sidebarCollapsed && (
-            <span style={{ fontFamily: "'Newsreader', Georgia, serif", fontSize: 20, fontWeight: 600, color: '#9b97d4', letterSpacing: '-0.02em', whiteSpace: 'nowrap' }}>
+            <span
+              style={{
+                fontFamily: "'Newsreader', Georgia, serif",
+                fontSize: 20,
+                fontWeight: 600,
+                color: '#9b97d4',
+                letterSpacing: '-0.02em',
+                whiteSpace: 'nowrap',
+              }}
+            >
               TaskFlow
             </span>
           )}
         </div>
 
-        <Menu mode="inline" selectedKeys={[selectedKey]} items={menuItems}
+        <Menu
+          mode="inline"
+          selectedKeys={[selectedKey]}
+          items={menuItems}
           onClick={({ key }) => navigate(key)}
           style={{ background: 'transparent', borderInlineEnd: 'none', padding: '16px 6px' }}
         />
@@ -68,8 +89,10 @@ export default function MainLayout() {
       <Layout>
         <Header />
         <div style={{ flex: 1, overflow: 'auto', background: 'var(--color-bg-deep)' }}>
-          <div style={{ padding: 32, maxWidth: 1400, margin: '0 auto' }}>
-            <Content><Outlet /></Content>
+          <div style={{ padding: '28px 32px', maxWidth: 1480, margin: '0 auto' }}>
+            <Content>
+              <Outlet />
+            </Content>
           </div>
         </div>
       </Layout>

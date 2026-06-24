@@ -137,8 +137,7 @@ public class ProjectServiceImpl implements ProjectService {
                     new LambdaQueryWrapper<Task>()
                             .in(Task::getListId, listIds));
             for (Task task : tasks) {
-                task.setIsDeleted(1);
-                taskMapper.updateById(task);
+                taskMapper.deleteById(task.getId());
             }
 
             // 删除所有列表

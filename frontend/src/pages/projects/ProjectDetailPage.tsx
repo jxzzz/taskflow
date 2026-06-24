@@ -1,272 +1,62 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Button, Space, Tag, Spin, Typography, Input, Popconfirm, Popover,
-  Select, Empty, Tooltip, Drawer, Descriptions, Skeleton, message,
+  Button,
+  Space,
+  Tag,
+  Spin,
+  Typography,
+  Input,
+  Empty,
+  Drawer,
+  Descriptions,
+  Skeleton,
+  message,
 } from 'antd';
 import {
-  ArrowLeftOutlined, EditOutlined, TeamOutlined, ClockCircleOutlined,
-  PlusOutlined, DeleteOutlined, SwapOutlined, HolderOutlined,
+  ArrowLeftOutlined,
+  EditOutlined,
+  TeamOutlined,
+  ClockCircleOutlined,
+  PlusOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  pointerWithin,
+  closestCenter,
+  defaultDropAnimationSideEffects,
+  type DragStartEvent,
+  type DragEndEvent,
+  type DragOverEvent,
+  type CollisionDetection,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import dayjs from 'dayjs';
+import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/common/PageHeader';
 import EmptyKanban from '@/components/common/EmptyKanban';
+import QuickAddModal from '@/components/common/QuickAddModal';
+import KanbanColumn from '@/pages/projects/KanbanColumn';
+import KanbanCard from '@/pages/projects/KanbanCard';
 import { useProject } from '@/hooks/useProjects';
-import { useCreateTaskList, useDeleteTaskList } from '@/hooks/useTaskLists';
-import { useCreateTask, useDeleteTask, useMoveTask, useTaskDetail } from '@/hooks/useTasks';
+import { useCreateTaskList } from '@/hooks/useTaskLists';
+import { useCreateTask, useMoveTask, useTaskDetail } from '@/hooks/useTasks';
+import { computeSortOrders } from '@/hooks/useKanbanMutations';
+import { taskApi, taskListApi } from '@/api/tasks';
 import type { TaskCardBrief, TaskListSummary } from '@/types/task';
+import type { Project } from '@/types/project';
 
 const { Text, Title } = Typography;
-
-/** 优先级颜色映射 */
-const PRIORITY_COLORS: Record<number, string> = {
-  0: 'var(--color-ink-disabled)',    // 普通 - 灰色
-  1: 'var(--color-butter)',           // 紧急 - 黄色
-  2: 'var(--color-coral)',            // 非常紧急 - 红色
-};
-
-const PRIORITY_LABELS: Record<number, string> = {
-  0: '普通',
-  1: '紧急',
-  2: '非常紧急',
-};
-
-/** 单个看板列 */
-function TaskColumn({
-  list,
-  projectId,
-  allLists,
-  onCardMoved,
-  onCardClick,
-}: {
-  list: TaskListSummary;
-  projectId: number;
-  allLists: TaskListSummary[];
-  onCardMoved: () => void;
-  onCardClick: (cardId: number) => void;
-}) {
-  const [adding, setAdding] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const createTask = useCreateTask();
-  const deleteTask = useDeleteTask();
-  const moveTask = useMoveTask();
-  const deleteList = useDeleteTaskList(projectId);
-
-  const handleAdd = () => {
-    if (!newTitle.trim()) return;
-    createTask.mutate(
-      { listId: list.id, data: { title: newTitle.trim() } },
-      { onSuccess: () => { setNewTitle(''); setAdding(false); } },
-    );
-  };
-
-  const targetLists = allLists.filter((l) => l.id !== list.id);
-
-  return (
-    <div style={{
-      width: 280, minWidth: 280, flexShrink: 0,
-      background: 'var(--color-bg-surface)',
-      borderRadius: 'var(--radius-lg)',
-      padding: '14px 14px 10px',
-      display: 'flex', flexDirection: 'column',
-      maxHeight: 'calc(100vh - 240px)',
-    }}>
-      {/* Column header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        marginBottom: 12, padding: '0 4px',
-      }}>
-        <Space size={6}>
-          <HolderOutlined style={{ color: 'var(--color-ink-disabled)', fontSize: 13 }} />
-          <Text strong style={{ fontSize: 13, color: 'var(--color-ink-primary)' }}>
-            {list.name}
-          </Text>
-          <Tag style={{ margin: 0, fontSize: 10, lineHeight: '16px', padding: '0 6px', border: 'none', background: 'rgba(0,0,0,0.06)', color: 'var(--color-ink-tertiary)', borderRadius: 'var(--radius-xs)' }}>
-            {list.taskCount}
-          </Tag>
-        </Space>
-        <Popconfirm
-          title="删除这个列表？"
-          description="列表下的所有卡片也会被删除"
-          onConfirm={() => deleteList.mutate(list.id)}
-          okText="删除"
-          cancelText="取消"
-        >
-          <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ opacity: 0.3 }} />
-        </Popconfirm>
-      </div>
-
-      {/* Cards */}
-      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {list.tasks.map((card) => (
-          <CardItem
-            key={card.id}
-            card={card}
-            targetLists={targetLists}
-            onClick={() => onCardClick(card.id)}
-            onDelete={() => deleteTask.mutate(card.id)}
-            onMove={(targetListId) => {
-              moveTask.mutate(
-                { id: card.id, data: { targetListId, sortOrder: 0 } },
-                { onSuccess: onCardMoved },
-              );
-            }}
-          />
-        ))}
-
-        {/* Inline add form */}
-        {adding ? (
-          <div style={{ padding: '0 2px' }}>
-            <Input.TextArea
-              autoFocus
-              size="small"
-              placeholder="输入卡片标题，回车提交"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              onPressEnter={(e) => {
-                e.preventDefault();
-                handleAdd();
-              }}
-              style={{ borderRadius: 'var(--radius-sm)', marginBottom: 6, fontSize: 12 }}
-              rows={2}
-            />
-            <Space size={6}>
-              <Button size="small" type="primary" onClick={handleAdd} loading={createTask.isPending} style={{ borderRadius: 'var(--radius-xs)', fontSize: 12 }}>
-                添加
-              </Button>
-              <Button size="small" onClick={() => { setAdding(false); setNewTitle(''); }} style={{ borderRadius: 'var(--radius-xs)', fontSize: 12 }}>
-                取消
-              </Button>
-            </Space>
-          </div>
-        ) : (
-          <Button
-            type="text"
-            block
-            icon={<PlusOutlined />}
-            onClick={() => setAdding(true)}
-            style={{
-              color: 'var(--color-ink-tertiary)', fontSize: 12,
-              borderRadius: 'var(--radius-sm)', marginTop: 2,
-            }}
-          >
-            添加卡片
-          </Button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** 单个卡片 */
-function CardItem({
-  card,
-  targetLists,
-  onClick,
-  onDelete,
-  onMove,
-}: {
-  card: TaskCardBrief;
-  targetLists: TaskListSummary[];
-  onClick: () => void;
-  onDelete: () => void;
-  onMove: (targetListId: number) => void;
-}) {
-  const isOverdue = card.dueDate && dayjs(card.dueDate).isBefore(dayjs());
-  const priorityColor = PRIORITY_COLORS[card.priority] || PRIORITY_COLORS[0];
-
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        background: 'var(--color-bg-elevated)',
-        borderRadius: 'var(--radius-sm)',
-        padding: '10px 12px',
-        boxShadow: 'var(--shadow-xs)',
-        border: '1px solid var(--color-border-subtle)',
-        cursor: 'pointer',
-        transition: 'box-shadow var(--duration-fast) var(--ease-out-expo)',
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-xs)'; }}
-    >
-      {/* Title + actions */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 500, fontSize: 13, lineHeight: 1.4, color: 'var(--color-ink-primary)', wordBreak: 'break-word' }}>
-            {card.title}
-          </div>
-        </div>
-        <Space size={2} style={{ flexShrink: 0 }}>
-          {/* Move */}
-          {targetLists.length > 0 && (
-            <Popover
-              trigger="click"
-              content={
-                <div style={{ width: 160 }}>
-                  <Text style={{ fontSize: 11, color: 'var(--color-ink-tertiary)', display: 'block', marginBottom: 6 }}>移动到</Text>
-                  <Select
-                    size="small"
-                    style={{ width: '100%' }}
-                    placeholder="选择列表"
-                    options={targetLists.map((l) => ({ label: l.name, value: l.id }))}
-                    onChange={(val) => onMove(val)}
-                  />
-                </div>
-              }
-            >
-              <Button type="text" size="small" icon={<SwapOutlined />} style={{ fontSize: 11, opacity: 0.3 }} />
-            </Popover>
-          )}
-          {/* Delete */}
-          <Popconfirm title="删除这个卡片？" onConfirm={onDelete} okText="删除" cancelText="取消">
-            <Button type="text" size="small" danger icon={<DeleteOutlined />} style={{ fontSize: 11, opacity: 0.3 }} />
-          </Popconfirm>
-        </Space>
-      </div>
-
-      {/* Bottom info row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-        {/* Priority dot */}
-        {card.priority > 0 && (
-          <Tooltip title={PRIORITY_LABELS[card.priority]}>
-            <span style={{ width: 8, height: 8, borderRadius: 4, background: priorityColor, display: 'inline-block', flexShrink: 0 }} />
-          </Tooltip>
-        )}
-
-        {/* Due date */}
-        {card.dueDate && (
-          <Text style={{
-            fontSize: 11, color: isOverdue ? 'var(--color-coral)' : 'var(--color-ink-tertiary)',
-            display: 'flex', alignItems: 'center', gap: 3,
-          }}>
-            <ClockCircleOutlined style={{ fontSize: 10 }} />
-            {dayjs(card.dueDate).format('MM/DD')}
-          </Text>
-        )}
-
-        {/* Assignee */}
-        {card.assigneeName && (
-          <Tag style={{
-            margin: 0, fontSize: 10, lineHeight: '16px', padding: '0 5px',
-            border: 'none', background: 'var(--tag-sky)', color: 'var(--tag-sky-text)',
-            borderRadius: 'var(--radius-xs)',
-          }}>
-            {card.assigneeName}
-          </Tag>
-        )}
-
-        {/* Spacer */}
-        <div style={{ flex: 1 }} />
-
-        {/* Label count */}
-        {card.labelCount > 0 && (
-          <Text style={{ fontSize: 10, color: 'var(--color-ink-disabled)' }}>{card.labelCount} 标签</Text>
-        )}
-      </div>
-    </div>
-  );
-}
 
 /** ==================== 主页面 ==================== */
 
@@ -281,6 +71,308 @@ export default function ProjectDetailPage() {
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const { data: taskDetail, isFetching: taskLoading } = useTaskDetail(selectedTaskId);
 
+  // Quick-add command palette
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const createTask = useCreateTask();
+
+  const lists = project?.lists || [];
+  const listCount = lists.length;
+
+  // ====== Drag & Drop State ======
+  const queryClient = useQueryClient();
+  const moveTask = useMoveTask();
+  const [activeTask, setActiveTask] = useState<TaskCardBrief | null>(null);
+  const previousCacheRef = useRef<Project | undefined>(undefined);
+  // Record source list ID at drag start (before optimistic move changes active.data.current.listId)
+  const sourceListIdRef = useRef<number | null>(null);
+  // Track where the card currently lives in the optimistic cache (updates each time we move it)
+  const optimisticListIdRef = useRef<number | null>(null);
+
+  // Sensors: 5px activation constraint prevents accidental drags on click
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  // Custom collision: pointerWithin primary, closestCenter fallback
+  const kanbanCollisionDetection: CollisionDetection = (args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) return pointerCollisions;
+    return closestCenter(args);
+  };
+
+  // Drop animation with design-system easing
+  const customDropAnimation = {
+    sideEffects: defaultDropAnimationSideEffects({
+      styles: {
+        active: {
+          transition: 'transform 250ms cubic-bezier(0.19, 1, 0.22, 1), opacity 200ms ease',
+        },
+      },
+    }),
+  };
+
+  /** Drag start: snapshot cache for rollback, close detail drawer */
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const { active } = event;
+      if (active.data.current?.type === 'card') {
+        setActiveTask(active.data.current.card as TaskCardBrief);
+        // Close detail drawer if open
+        setSelectedTaskId(null);
+        // Snapshot source list ID before optimistic move overwrites it
+        sourceListIdRef.current = active.data.current.listId as number;
+        optimisticListIdRef.current = active.data.current.listId as number;
+      }
+      // Snapshot project cache for rollback on cancel
+      previousCacheRef.current = queryClient.getQueryData<Project>(['projects', projectId]);
+    },
+    [queryClient, projectId],
+  );
+
+  /** Drag over: visually move card between lists in cache for instant feedback */
+  const handleDragOver = useCallback(
+    (event: DragOverEvent) => {
+      const { active, over } = event;
+      if (!over || active.data.current?.type !== 'card') return;
+
+      const activeCardId = active.id as number;
+
+      // Determine target list from over element
+      let overListId: number;
+      if (over.data.current?.type === 'card') {
+        overListId = over.data.current.listId as number;
+      } else if (over.data.current?.type === 'column') {
+        overListId = (over.data.current.list as TaskListSummary).id;
+      } else {
+        return;
+      }
+
+      // Skip if card is already in the target list at the right position
+      const prevOptimisticListId = optimisticListIdRef.current;
+      if (prevOptimisticListId === overListId) return;
+
+      // Optimistically move card: remove from current location, insert into target
+      queryClient.setQueryData<Project>(['projects', projectId], (old) => {
+        if (!old?.lists) return old;
+        // Find the card wherever it currently lives in the cache
+        const currentList = old.lists.find((l) => l.id === prevOptimisticListId);
+        const cardInCache = currentList?.tasks.find((t) => t.id === activeCardId);
+        if (!cardInCache) return old;
+
+        const targetList = old.lists.find((l) => l.id === overListId);
+        if (!targetList) return old;
+
+        return {
+          ...old,
+          lists: old.lists.map((l) => {
+            if (l.id === prevOptimisticListId) {
+              const filtered = l.tasks.filter((t) => t.id !== activeCardId);
+              return { ...l, tasks: filtered, taskCount: filtered.length };
+            }
+            if (l.id === overListId) {
+              const deduped = l.tasks.filter((t) => t.id !== activeCardId);
+              deduped.push(cardInCache);
+              return { ...l, tasks: deduped, taskCount: deduped.length };
+            }
+            return l;
+          }),
+        };
+      });
+      optimisticListIdRef.current = overListId;
+    },
+    [queryClient, projectId],
+  );
+
+  /** Drag end: persist changes to server */
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      setActiveTask(null);
+
+      if (!over) {
+        // Dropped in empty space — restore snapshot
+        if (previousCacheRef.current) {
+          queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
+        }
+        sourceListIdRef.current = null;
+        optimisticListIdRef.current = null;
+        return;
+      }
+
+      // --- Column reorder ---
+      if (active.data.current?.type === 'column') {
+        const oldIndex = lists.findIndex((l) => `list-${l.id}` === active.id);
+        const newIndex = lists.findIndex((l) => `list-${l.id}` === over.id);
+        if (oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex) {
+          const items = computeSortOrders(lists, oldIndex, newIndex);
+          taskListApi
+            .reorder(projectId, items)
+            .catch(() => {
+              if (previousCacheRef.current)
+                queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
+              message.error('列排序失败');
+            })
+            .finally(() => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }));
+        }
+        return;
+      }
+
+      // --- Card drag ---
+      if (active.data.current?.type !== 'card') return;
+
+      const activeCard = active.data.current.card as TaskCardBrief;
+      const sourceListId = sourceListIdRef.current ?? (active.data.current.listId as number);
+      sourceListIdRef.current = null;
+      optimisticListIdRef.current = null;
+
+      // Determine target list from the drop target
+      let targetListId: number;
+      if (over.data.current?.type === 'card') {
+        targetListId = over.data.current.listId as number;
+      } else if (over.data.current?.type === 'column') {
+        targetListId = (over.data.current.list as TaskListSummary).id;
+      } else {
+        // Unknown drop target — restore snapshot
+        if (previousCacheRef.current) {
+          queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
+        }
+        return;
+      }
+
+      // Determine target index
+      const targetList = lists.find((l) => l.id === targetListId);
+      let targetIndex = targetList?.tasks.length ?? 0;
+      if (over.data.current?.type === 'card') {
+        const idx = targetList?.tasks.findIndex((t) => t.id === over.id) ?? -1;
+        if (idx >= 0) targetIndex = idx;
+      }
+
+      if (sourceListId !== targetListId) {
+        // --- Cross-column move ---
+        // handleDragOver already moved the card optimistically, just call API
+        moveTask.mutate(
+          {
+            id: activeCard.id,
+            data: { targetListId, sortOrder: targetIndex * 1000 },
+          },
+          {
+            onError: () => {
+              if (previousCacheRef.current)
+                queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
+              message.error('移动失败');
+            },
+            onSuccess: () => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }),
+          },
+        );
+        return;
+      }
+
+      // --- Within-column reorder ---
+      const sourceList = lists.find((l) => l.id === sourceListId);
+      if (!sourceList) return;
+      const oldIndex = sourceList.tasks.findIndex((t) => t.id === activeCard.id);
+      if (oldIndex < 0 || oldIndex === targetIndex) {
+        queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
+        return;
+      }
+
+      const items = computeSortOrders(sourceList.tasks, oldIndex, targetIndex);
+
+      // Optimistic: update cache immediately so cards don't snap back
+      queryClient.setQueryData<Project>(['projects', projectId], (old) => {
+        if (!old?.lists) return old;
+        return {
+          ...old,
+          lists: old.lists.map((l) => {
+            if (l.id === sourceListId) {
+              const reordered = [...l.tasks];
+              const [moved] = reordered.splice(oldIndex, 1);
+              reordered.splice(targetIndex, 0, moved);
+              return { ...l, tasks: reordered.map((t, i) => ({ ...t, sortOrder: i * 1000 })) };
+            }
+            return l;
+          }),
+        };
+      });
+
+      taskApi
+        .reorder(sourceListId, items)
+        .catch(() => {
+          if (previousCacheRef.current)
+            queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
+          message.error('排序失败');
+        })
+        .finally(() => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }));
+    },
+    [lists, moveTask, queryClient, projectId],
+  );
+
+  /** Drag cancel: restore snapshot */
+  const handleDragCancel = useCallback(() => {
+    if (previousCacheRef.current) {
+      queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
+    }
+    sourceListIdRef.current = null;
+    optimisticListIdRef.current = null;
+    setActiveTask(null);
+  }, [queryClient, projectId]);
+
+  // Cleanup refs on unmount
+  useEffect(() => {
+    return () => {
+      sourceListIdRef.current = null;
+      optimisticListIdRef.current = null;
+    };
+  }, []);
+
+  /** Handle quick-add submission: create task in the selected/default list */
+  const handleQuickAddSubmit = useCallback(
+    (data: { title: string; dueDate?: string; priority?: number }) => {
+      const targetListId = lists[0]?.id;
+      if (!targetListId) {
+        // No lists exist — create one first, then the task will be created
+        createList.mutate('To Do', {
+          onSuccess: (newList) => {
+            const listId = (newList as any)?.id;
+            if (listId) {
+              createTask.mutate(
+                {
+                  listId,
+                  data: { title: data.title, dueDate: data.dueDate, priority: data.priority },
+                },
+                {
+                  onSuccess: () => {
+                    setQuickAddOpen(false);
+                    message.success('任务已创建 ✨');
+                  },
+                },
+              );
+            }
+          },
+        });
+        return;
+      }
+      createTask.mutate(
+        {
+          listId: targetListId,
+          data: { title: data.title, dueDate: data.dueDate, priority: data.priority },
+        },
+        {
+          onSuccess: () => {
+            setQuickAddOpen(false);
+            message.success('任务已创建 ✨');
+          },
+        },
+      );
+    },
+    [lists, createList, createTask],
+  );
+
   /** Quick-start: create a default "To Do" list so the user can begin adding tasks */
   const handleCreateFirstList = useCallback(() => {
     if (createList.isPending) return;
@@ -290,9 +382,6 @@ export default function ProjectDetailPage() {
       },
     });
   }, [createList]);
-
-  const lists = project?.lists || [];
-  const listCount = lists.length;
 
   /** Keyboard shortcut: N to create first list */
   useEffect(() => {
@@ -310,12 +399,39 @@ export default function ProjectDetailPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [listCount, addingList, handleCreateFirstList]);
 
-  if (isLoading) return <div style={{ textAlign: 'center', padding: 120 }}><Spin /></div>;
+  /** Keyboard shortcut: Cmd+K / Ctrl+K to open quick-add */
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setQuickAddOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  if (isLoading)
+    return (
+      <div style={{ textAlign: 'center', padding: 120 }}>
+        <Spin />
+      </div>
+    );
   if (!project) {
     return (
       <div style={{ textAlign: 'center', padding: 80 }}>
-        <Title level={4} style={{ color: 'rgba(43,40,37,0.4)' }}>项目不存在</Title>
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/projects')} style={{ marginTop: 16 }}>返回项目列表</Button>
+        <Title level={4} style={{ color: 'rgba(43,40,37,0.4)' }}>
+          项目不存在
+        </Title>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate('/projects')}
+          style={{ marginTop: 16 }}
+        >
+          返回项目列表
+        </Button>
       </div>
     );
   }
@@ -323,12 +439,22 @@ export default function ProjectDetailPage() {
   const handleAddList = () => {
     if (!newListName.trim()) return;
     createList.mutate(newListName.trim(), {
-      onSuccess: () => { setNewListName(''); setAddingList(false); },
+      onSuccess: () => {
+        setNewListName('');
+        setAddingList(false);
+      },
     });
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 80px)' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'calc(100vh - 112px)',
+        overflow: 'hidden',
+      }}
+    >
       {/* Header */}
       <PageHeader
         title={project.name}
@@ -336,22 +462,41 @@ export default function ProjectDetailPage() {
         breadcrumb={[{ title: '项目', path: '/projects' }, { title: project.name }]}
         extra={
           <Space>
-            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/projects')}>返回</Button>
-            <Button type="primary" icon={<EditOutlined />} style={{ borderRadius: 50 }}>编辑</Button>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/projects')}>
+              返回
+            </Button>
+            <Button type="primary" icon={<EditOutlined />} style={{ borderRadius: 50 }}>
+              编辑
+            </Button>
           </Space>
         }
       />
 
       {/* Info bar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 14, padding: '10px 0', marginBottom: 8,
-      }}>
-        <Tag style={{ background: 'var(--tag-lavender)', color: 'var(--tag-lavender-text)', border: 'none', margin: 0 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          padding: '10px 0',
+          marginBottom: 8,
+        }}
+      >
+        <Tag
+          style={{
+            background: 'var(--tag-lavender)',
+            color: 'var(--tag-lavender-text)',
+            border: 'none',
+            margin: 0,
+          }}
+        >
           {project.ownerName || `用户 #${project.ownerId}`}
         </Tag>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
         <TeamOutlined style={{ color: 'var(--color-lavender)', fontSize: 13 }} />
-        <Text style={{ fontSize: 13, color: 'var(--color-ink-secondary)' }}>{project.memberCount} 人</Text>
+        <Text style={{ fontSize: 13, color: 'var(--color-ink-secondary)' }}>
+          {project.memberCount} 人
+        </Text>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
         <ClockCircleOutlined style={{ color: 'var(--color-ink-tertiary)', fontSize: 13 }} />
         <Text style={{ fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
@@ -359,67 +504,182 @@ export default function ProjectDetailPage() {
         </Text>
       </div>
 
-      {/* Kanban board */}
-      <div style={{
-        flex: 1, display: 'flex', gap: 14, overflowX: 'auto', overflowY: 'hidden',
-        paddingBottom: 16, alignItems: 'flex-start',
-      }}>
-        {lists.map((list) => (
-          <TaskColumn
-            key={list.id}
-            list={list}
-            projectId={projectId}
-            allLists={lists}
-            onCardMoved={() => {}}
-            onCardClick={(cardId) => setSelectedTaskId(cardId)}
-          />
-        ))}
-
-        {/* Add list column */}
-        {addingList ? (
-          <div style={{
-            width: 260, minWidth: 260, flexShrink: 0,
-            background: 'var(--color-bg-surface)',
-            borderRadius: 'var(--radius-lg)',
-            padding: 14,
-          }}>
-            <Input
-              autoFocus
-              size="small"
-              placeholder="列表名称"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onPressEnter={handleAddList}
-              style={{ marginBottom: 8, borderRadius: 'var(--radius-sm)' }}
-            />
-            <Space size={6}>
-              <Button size="small" type="primary" onClick={handleAddList} loading={createList.isPending} style={{ borderRadius: 'var(--radius-xs)' }}>
-                添加
-              </Button>
-              <Button size="small" onClick={() => { setAddingList(false); setNewListName(''); }} style={{ borderRadius: 'var(--radius-xs)' }}>
-                取消
-              </Button>
-            </Space>
-          </div>
-        ) : (
-          <Button
-            icon={<PlusOutlined />}
-            onClick={() => setAddingList(true)}
-            style={{
-              minWidth: 200, flexShrink: 0,
-              borderRadius: 'var(--radius-lg)', fontSize: 13,
-              color: 'var(--color-ink-tertiary)', height: 44,
-            }}
+      {/* Kanban board — DndContext for drag-and-drop */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={kanbanCollisionDetection}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+        accessibility={{
+          announcements: {
+            onDragStart({ active }) {
+              const card = active.data.current?.card as TaskCardBrief | undefined;
+              return card ? `已拾取卡片 "${card.title}"` : '已拾取';
+            },
+            onDragOver({ over }) {
+              if (!over) return '无可放置目标';
+              return `移动到位置 ${(over.data.current?.sortable?.index ?? 0) + 1}`;
+            },
+            onDragEnd({ over }) {
+              if (!over) return '已放回原位';
+              return `已放置到位置 ${(over.data.current?.sortable?.index ?? 0) + 1}`;
+            },
+            onDragCancel() {
+              return '拖拽已取消';
+            },
+          },
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            gap: 14,
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            paddingBottom: 16,
+            alignItems: 'stretch',
+            minHeight: 0,
+          }}
+        >
+          <SortableContext
+            items={lists.map((l) => `list-${l.id}`)}
+            strategy={horizontalListSortingStrategy}
           >
-            添加列表
-          </Button>
-        )}
+            {lists.map((list) => (
+              <KanbanColumn
+                key={list.id}
+                list={list}
+                projectId={projectId}
+                allLists={lists}
+                onCardMoved={() => {}}
+                onCardClick={(cardId) => setSelectedTaskId(cardId)}
+                onTaskDeleted={(taskId) => {
+                  if (taskId === selectedTaskId) setSelectedTaskId(null);
+                }}
+              />
+            ))}
+          </SortableContext>
 
-        {/* Empty state — shown when no lists exist */}
-        {lists.length === 0 && !addingList && (
-          <EmptyKanban onCreateTask={handleCreateFirstList} />
-        )}
-      </div>
+          {/* Add list column */}
+          {addingList ? (
+            <div
+              style={{
+                width: 260,
+                minWidth: 260,
+                flexShrink: 0,
+                background: 'var(--color-bg-surface)',
+                borderRadius: 'var(--radius-lg)',
+                padding: 14,
+              }}
+            >
+              <Input
+                autoFocus
+                size="small"
+                placeholder="列表名称"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                onPressEnter={handleAddList}
+                style={{ marginBottom: 8, borderRadius: 'var(--radius-sm)' }}
+              />
+              <Space size={6}>
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={handleAddList}
+                  loading={createList.isPending}
+                  style={{ borderRadius: 'var(--radius-xs)' }}
+                >
+                  添加
+                </Button>
+                <Button
+                  size="small"
+                  onClick={() => {
+                    setAddingList(false);
+                    setNewListName('');
+                  }}
+                  style={{ borderRadius: 'var(--radius-xs)' }}
+                >
+                  取消
+                </Button>
+              </Space>
+            </div>
+          ) : (
+            <Button
+              icon={<PlusOutlined />}
+              onClick={() => setAddingList(true)}
+              style={{
+                minWidth: 200,
+                flexShrink: 0,
+                borderRadius: 'var(--radius-lg)',
+                fontSize: 13,
+                color: 'var(--color-ink-tertiary)',
+                height: 44,
+              }}
+            >
+              添加列表
+            </Button>
+          )}
+
+          {/* Empty state — shown when no lists exist */}
+          {lists.length === 0 && !addingList && (
+            <EmptyKanban onCreateTask={handleCreateFirstList} />
+          )}
+        </div>
+
+        {/* Drag overlay — rendered card during drag */}
+        <DragOverlay dropAnimation={customDropAnimation} zIndex={1000}>
+          {activeTask ? (
+            <KanbanCard
+              card={activeTask}
+              listId={0}
+              targetLists={[]}
+              onClick={() => {}}
+              onDelete={() => {}}
+              onMove={() => {}}
+              isOverlay
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
+      {/* FAB — Quick-add floating action button */}
+      <button
+        className="quick-add-fab"
+        onClick={() => setQuickAddOpen(true)}
+        title="Quick Add Task (⌘K)"
+        style={{
+          position: 'fixed',
+          bottom: 32,
+          right: 36,
+          width: 52,
+          height: 52,
+          borderRadius: '50%',
+          border: 'none',
+          background: 'linear-gradient(135deg, #5B9FED 0%, #4A85D9 50%, #3D6FBF 100%)',
+          color: '#fff',
+          fontSize: 22,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 99,
+          boxShadow: '0 4px 16px rgba(74, 133, 217, 0.35), 0 0 0 2px rgba(74, 133, 217, 0.1)',
+          transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        }}
+      >
+        <ThunderboltOutlined style={{ fontSize: 20 }} />
+      </button>
+
+      {/* Quick-add command palette */}
+      <QuickAddModal
+        open={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
+        onSubmit={handleQuickAddSubmit}
+        lists={lists}
+      />
 
       {/* Task detail drawer */}
       <Drawer
@@ -437,10 +697,15 @@ export default function ProjectDetailPage() {
             {/* Priority + Status */}
             <Descriptions column={2} size="small" style={{ marginBottom: 16 }}>
               <Descriptions.Item label="优先级">
-                <Tag color={
-                  taskDetail.priority === 2 ? 'red' :
-                  taskDetail.priority === 1 ? 'orange' : 'default'
-                }>
+                <Tag
+                  color={
+                    taskDetail.priority === 2
+                      ? 'red'
+                      : taskDetail.priority === 1
+                        ? 'orange'
+                        : 'default'
+                  }
+                >
                   {taskDetail.priorityLabel}
                 </Tag>
               </Descriptions.Item>
@@ -460,16 +725,18 @@ export default function ProjectDetailPage() {
 
             {/* Content */}
             {taskDetail.content ? (
-              <div style={{
-                background: 'var(--color-bg-surface)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '14px 16px',
-                fontSize: 13,
-                lineHeight: 1.7,
-                color: 'var(--color-ink-primary)',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}>
+              <div
+                style={{
+                  background: 'var(--color-bg-surface)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '14px 16px',
+                  fontSize: 13,
+                  lineHeight: 1.7,
+                  color: 'var(--color-ink-primary)',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
                 {taskDetail.content}
               </div>
             ) : (
@@ -481,7 +748,13 @@ export default function ProjectDetailPage() {
             )}
 
             {/* Meta info */}
-            <div style={{ marginTop: 24, padding: '12px 0', borderTop: '1px solid var(--color-border-subtle)' }}>
+            <div
+              style={{
+                marginTop: 24,
+                padding: '12px 0',
+                borderTop: '1px solid var(--color-border-subtle)',
+              }}
+            >
               <Space size={24}>
                 <Text style={{ fontSize: 11, color: 'var(--color-ink-disabled)' }}>
                   创建于 {dayjs(taskDetail.createTime).format('YYYY-MM-DD HH:mm')}
