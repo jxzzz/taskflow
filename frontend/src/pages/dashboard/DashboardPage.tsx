@@ -1,6 +1,11 @@
 import { useState, useCallback } from 'react';
 import { Row, Col, Typography, Card, Tag, Skeleton, message } from 'antd';
-import { ProjectOutlined, UserOutlined, CheckSquareOutlined, ArrowRightOutlined, PlusOutlined } from '@ant-design/icons';
+import {
+  ProjectOutlined,
+  UserOutlined,
+  CheckSquareOutlined,
+  ArrowRightOutlined,
+} from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
 import QuickActionFab from '@/components/common/QuickActionFab';
@@ -30,9 +35,12 @@ export default function DashboardPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const createMutation = useCreateProject();
 
-  const handleCreateProject = useCallback((values: CreateProjectRequest) => {
-    createMutation.mutate(values, { onSuccess: () => setCreateOpen(false) });
-  }, [createMutation]);
+  const handleCreateProject = useCallback(
+    (values: CreateProjectRequest) => {
+      createMutation.mutate(values, { onSuccess: () => setCreateOpen(false) });
+    },
+    [createMutation],
+  );
 
   // Theme cycling
   const handleToggleTheme = useCallback(() => {
@@ -84,10 +92,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader
-        title={`你好，${user?.username || '用户'}`}
-        subtitle="欢迎使用 TaskFlow"
-      />
+      <PageHeader title={`你好，${user?.username || '用户'}`} subtitle="欢迎使用 TaskFlow" />
 
       {/* Stats */}
       <Row gutter={[16, 16]} style={{ marginBottom: 32 }}>
@@ -95,11 +100,20 @@ export default function DashboardPage() {
           <Col xs={24} sm={8} key={stat.label}>
             <Card size="small" style={{ border: 'none' }} loading={isFetching}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{
-                  width: 46, height: 46, borderRadius: 14, background: stat.bg,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 20, color: stat.color, flexShrink: 0,
-                }}>
+                <div
+                  style={{
+                    width: 46,
+                    height: 46,
+                    borderRadius: 14,
+                    background: stat.bg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 20,
+                    color: stat.color,
+                    flexShrink: 0,
+                  }}
+                >
                   {stat.icon}
                 </div>
                 <div>
@@ -120,8 +134,18 @@ export default function DashboardPage() {
       </Row>
 
       {/* My Projects */}
-      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-        <Title level={5} style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, margin: 0 }}>
+      <div
+        style={{
+          marginBottom: 24,
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Title
+          level={5}
+          style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, margin: 0 }}
+        >
           我的项目
         </Title>
         {data?.projects && data.projects.length > 0 && (
@@ -135,7 +159,13 @@ export default function DashboardPage() {
         <Row gutter={[16, 16]}>
           {[1, 2].map((i) => (
             <Col xs={24} sm={12} key={i}>
-              <div style={{ padding: '22px 24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-border-subtle)' }}>
+              <div
+                style={{
+                  padding: '22px 24px',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '1px solid var(--color-border-subtle)',
+                }}
+              >
                 <Skeleton active title={{ width: '60%' }} paragraph={{ rows: 2 }} />
               </div>
             </Col>
@@ -146,15 +176,16 @@ export default function DashboardPage() {
           {data.projects.map((p) => (
             <Col xs={24} sm={12} key={p.id}>
               <Link to={`/projects/${p.id}`} style={{ textDecoration: 'none' }}>
-                <div style={{
-                  background: 'var(--color-bg-elevated)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: '1px solid var(--color-border-subtle)',
-                  padding: '22px 24px',
-                  cursor: 'pointer',
-                  transition: 'all var(--duration-normal) var(--ease-out-expo)',
-                  boxShadow: 'var(--shadow-xs)',
-                }}
+                <div
+                  style={{
+                    background: 'var(--color-bg-elevated)',
+                    borderRadius: 'var(--radius-lg)',
+                    border: '1px solid var(--color-border-subtle)',
+                    padding: '22px 24px',
+                    cursor: 'pointer',
+                    transition: 'all var(--duration-normal) var(--ease-out-expo)',
+                    boxShadow: 'var(--shadow-xs)',
+                  }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = 'var(--shadow-card)';
                     e.currentTarget.style.borderColor = 'var(--color-border-default)';
@@ -167,20 +198,43 @@ export default function DashboardPage() {
                   }}
                 >
                   {/* Top row: name + arrow */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ fontWeight: 600, fontSize: 15, color: 'var(--color-ink-primary)', lineHeight: 1.3 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontWeight: 600,
+                        fontSize: 15,
+                        color: 'var(--color-ink-primary)',
+                        lineHeight: 1.3,
+                      }}
+                    >
                       {p.name}
                     </div>
-                    <ArrowRightOutlined style={{ color: 'var(--color-ink-disabled)', fontSize: 13, flexShrink: 0 }} />
+                    <ArrowRightOutlined
+                      style={{ color: 'var(--color-ink-disabled)', fontSize: 13, flexShrink: 0 }}
+                    />
                   </div>
 
                   {/* Description */}
                   {p.description && (
-                    <div style={{
-                      fontSize: 13, color: 'var(--color-ink-secondary)', lineHeight: 1.5,
-                      marginBottom: 14,
-                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                    }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: 'var(--color-ink-secondary)',
+                        lineHeight: 1.5,
+                        marginBottom: 14,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
                       {p.description}
                     </div>
                   )}
@@ -189,32 +243,77 @@ export default function DashboardPage() {
                   {/* Bottom row: stats + date */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     {/* Owner tag */}
-                    <Tag style={{
-                      background: 'var(--tag-lavender)', color: 'var(--tag-lavender-text)',
-                      border: 'none', margin: 0, fontSize: 11, borderRadius: 'var(--radius-xs)',
-                      padding: '1px 8px', lineHeight: '18px',
-                    }}>
+                    <Tag
+                      style={{
+                        background: 'var(--tag-lavender)',
+                        color: 'var(--tag-lavender-text)',
+                        border: 'none',
+                        margin: 0,
+                        fontSize: 11,
+                        borderRadius: 'var(--radius-xs)',
+                        padding: '1px 8px',
+                        lineHeight: '18px',
+                      }}
+                    >
                       {p.ownerName}
                     </Tag>
 
                     {/* Stats */}
-                    <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--color-ink-tertiary)' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 12,
+                        fontSize: 12,
+                        color: 'var(--color-ink-tertiary)',
+                      }}
+                    >
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--color-sage)', display: 'inline-block' }} />
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: 3,
+                            background: 'var(--color-sage)',
+                            display: 'inline-block',
+                          }}
+                        />
                         {p.listCount} 列表
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--color-lavender)', display: 'inline-block' }} />
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: 3,
+                            background: 'var(--color-lavender)',
+                            display: 'inline-block',
+                          }}
+                        />
                         {p.taskCount} 任务
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 6, height: 6, borderRadius: 3, background: 'var(--color-coral)', display: 'inline-block' }} />
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: 3,
+                            background: 'var(--color-coral)',
+                            display: 'inline-block',
+                          }}
+                        />
                         {p.memberCount} 人
                       </span>
                     </div>
 
                     {/* Date */}
-                    <Text style={{ fontSize: 11, color: 'var(--color-ink-disabled)', marginLeft: 'auto', whiteSpace: 'nowrap' }}>
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--color-ink-disabled)',
+                        marginLeft: 'auto',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
                       {dayjs(p.createTime).format('YYYY/MM/DD')}
                     </Text>
                   </div>
