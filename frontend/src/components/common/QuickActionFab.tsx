@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   PlusOutlined,
   ProjectOutlined,
@@ -10,14 +10,11 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '@/router/routes';
 
-/** ====== Menu Item Definition ====== */
-
 export interface QuickActionItem {
   key: string;
   icon: React.ReactNode;
   label: string;
   color: string;
-  bg: string;
   onClick: () => void;
 }
 
@@ -25,257 +22,137 @@ interface QuickActionFabProps {
   items: QuickActionItem[];
 }
 
-/** ====== Radial Fan Quick Action FAB ====== */
-
 const FAB_SIZE = 52;
-const ITEM_SIZE = 44;
-const RADIUS = 110;       // Distance from FAB center to item center
-const ARC_START = -150;   // degrees: leftmost item
-const ARC_END = -30;      // degrees: rightmost item
 
 export default function QuickActionFab({ items }: QuickActionFabProps) {
-  const [hovered, setHovered] = useState(false);
-  const [pressed, setPressed] = useState(false);
-  const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleMouseEnter = useCallback(() => {
-    if (leaveTimerRef.current) {
-      clearTimeout(leaveTimerRef.current);
-      leaveTimerRef.current = null;
+  // Close on outside click
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      setOpen(false);
     }
-    setHovered(true);
   }, []);
 
-  const handleMouseLeave = useCallback(() => {
-    // Small delay so the user can move to a menu item
-    leaveTimerRef.current = setTimeout(() => {
-      setHovered(false);
-    }, 180);
+  useEffect(() => {
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [open, handleClickOutside]);
+
+  const handleItemClick = useCallback((item: QuickActionItem) => {
+    setOpen(false);
+    item.onClick();
   }, []);
-
-  const handleItemClick = useCallback(
-    (item: QuickActionItem) => {
-      setHovered(false);
-      setPressed(true);
-      setTimeout(() => setPressed(false), 300);
-      item.onClick();
-    },
-    [],
-  );
-
-  // Calculate positions for each menu item along the arc
-  const itemCount = items.length;
-  const getItemStyle = (index: number): React.CSSProperties => {
-    const angleDeg =
-      itemCount === 1
-        ? (ARC_START + ARC_END) / 2
-        : ARC_START + (index / (itemCount - 1)) * (ARC_END - ARC_START);
-    const angleRad = (angleDeg * Math.PI) / 180;
-    const x = RADIUS * Math.cos(angleRad);
-    const y = RADIUS * Math.sin(angleRad);
-
-    const delay = index * 0.04;
-    const exitDelay = (itemCount - 1 - index) * 0.03;
-
-    return {
-      position: 'absolute',
-      width: ITEM_SIZE,
-      height: ITEM_SIZE,
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      border: 'none',
-      padding: 0,
-      // Position relative to FAB center; FAB is at (RADIUS, RADIUS) in the container
-      left: RADIUS + x - ITEM_SIZE / 2,
-      top: RADIUS + y - ITEM_SIZE / 2,
-      transform: hovered
-        ? 'scale(1)'
-        : 'scale(0.3)',
-      opacity: hovered ? 1 : 0,
-      pointerEvents: hovered ? 'auto' : 'none',
-      transition: [
-        `transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s`,
-        `opacity 0.35s cubic-bezier(0.19, 1, 0.22, 1) ${delay}s`,
-      ].join(', '),
-      // On exit, reverse the stagger
-      ...(hovered ? {} : {
-        transitionDelay: `${exitDelay}s, ${exitDelay}s`,
-      }),
-      zIndex: hovered ? 98 : 0,
-    };
-  };
-
-  // Menu item labels positioned next to each item
-  const getLabelStyle = (index: number): React.CSSProperties => {
-    const angleDeg =
-      itemCount === 1
-        ? (ARC_START + ARC_END) / 2
-        : ARC_START + (index / (itemCount - 1)) * (ARC_END - ARC_START);
-    const angleRad = (angleDeg * Math.PI) / 180;
-    const x = RADIUS * Math.cos(angleRad);
-    const y = RADIUS * Math.sin(angleRad);
-
-    // Place label to the left if item is on the right side, and vice versa
-    const isLeftSide = angleDeg < -90;
-    const labelX = isLeftSide
-      ? x - ITEM_SIZE / 2 - 8  // left of the icon
-      : x + ITEM_SIZE / 2 + 8;  // right of the icon
-    const labelY = y;
-
-    const delay = index * 0.04 + 0.06;
-
-    return {
-      position: 'absolute',
-      left: RADIUS + labelX,
-      top: RADIUS + labelY,
-      transform: hovered
-        ? `translate(${isLeftSide ? '-100%' : '0'}, -50%) scale(1)`
-        : `translate(${isLeftSide ? '-80%' : '-20%'}, -50%) scale(0.6)`,
-      opacity: hovered ? 1 : 0,
-      pointerEvents: 'none',
-      whiteSpace: 'nowrap',
-      fontSize: 12,
-      fontWeight: 600,
-      fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-      color: 'var(--color-ink-primary)',
-      background: 'rgba(255, 255, 255, 0.92)',
-      backdropFilter: 'blur(12px)',
-      WebkitBackdropFilter: 'blur(12px)',
-      padding: '4px 12px',
-      borderRadius: 9999,
-      boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)',
-      transition: [
-        `transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s`,
-        `opacity 0.35s cubic-bezier(0.19, 1, 0.22, 1) ${delay}s`,
-      ].join(', '),
-      zIndex: hovered ? 97 : 0,
-    };
-  };
 
   return (
     <div
-      className="quick-action-fab-area"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      ref={containerRef}
       style={{
         position: 'fixed',
-        // The container covers the fan area + FAB
-        // Fan extends RADIUS px in all directions from FAB center
-        bottom: 32 - RADIUS,
-        right: 36 - RADIUS,
-        width: RADIUS * 2 + FAB_SIZE,
-        height: RADIUS * 2 + FAB_SIZE,
+        bottom: 32,
+        right: 36,
         zIndex: 100,
-        pointerEvents: 'none', // Container doesn't block clicks
+        display: 'flex',
+        flexDirection: 'column-reverse',
+        alignItems: 'flex-end',
+        gap: 12,
       }}
     >
-      {/* Radial menu items */}
-      {items.map((item, i) => (
-        <div key={item.key} style={{ pointerEvents: hovered ? 'auto' : 'none' }}>
-          {/* Icon button */}
-          <button
-            type="button"
-            className="quick-action-item"
-            style={getItemStyle(i)}
-            onClick={() => handleItemClick(item)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.2)';
-              e.currentTarget.style.boxShadow = `0 4px 16px ${item.color}40, 0 0 0 4px ${item.color}15`;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = `0 2px 8px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04)`;
-            }}
-            aria-label={item.label}
-          >
-            <span style={{ fontSize: 17, color: item.color, lineHeight: 1, display: 'flex' }}>
-              {item.icon}
-            </span>
-          </button>
-
-          {/* Label */}
-          <span style={getLabelStyle(i)}>{item.label}</span>
-        </div>
-      ))}
-
-      {/* Central FAB button */}
+      {/* FAB — always at the bottom (first child in column-reverse = bottom) */}
       <button
         type="button"
-        className="quick-action-fab"
-        onMouseEnter={handleMouseEnter}
+        onClick={() => setOpen(!open)}
         style={{
-          position: 'absolute',
-          bottom: RADIUS,
-          right: RADIUS,
           width: FAB_SIZE,
           height: FAB_SIZE,
           borderRadius: '50%',
           border: 'none',
-          background: hovered
-            ? 'linear-gradient(135deg, #8b88c4 0%, #7a77b8 50%, #6b67a8 100%)'
-            : 'linear-gradient(135deg, #5B9FED 0%, #4A85D9 50%, #3D6FBF 100%)',
+          background: open
+            ? 'linear-gradient(135deg, #8b88c4 0%, #6b67a8 100%)'
+            : 'linear-gradient(135deg, #5B9FED 0%, #3D6FBF 100%)',
           color: '#fff',
           fontSize: 22,
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 99,
-          pointerEvents: 'auto',
-          boxShadow: hovered
-            ? '0 6px 24px rgba(107, 103, 168, 0.45), 0 0 0 6px rgba(107, 103, 168, 0.10)'
-            : pressed
-              ? '0 2px 8px rgba(74, 133, 217, 0.25)'
-              : '0 4px 16px rgba(74, 133, 217, 0.35), 0 0 0 2px rgba(74, 133, 217, 0.1)',
-          transform: hovered ? 'rotate(45deg) scale(1.08)' : pressed ? 'scale(0.9)' : 'scale(1)',
+          boxShadow: open
+            ? '0 6px 28px rgba(107,103,168,0.45), 0 0 0 6px rgba(107,103,168,0.08)'
+            : '0 4px 18px rgba(74,133,217,0.35), 0 0 0 3px rgba(74,133,217,0.10)',
+          transform: open ? 'rotate(45deg) scale(1.08)' : 'scale(1)',
           transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          flexShrink: 0,
         }}
-        aria-label="Quick actions"
       >
-        <PlusOutlined style={{ fontSize: 22, transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)' }} />
+        <PlusOutlined style={{ fontSize: 22 }} />
       </button>
 
-      {/* Subtle radial pulse ring when hovered */}
-      {hovered && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: RADIUS,
-            right: RADIUS,
-            width: FAB_SIZE,
-            height: FAB_SIZE,
-            borderRadius: '50%',
-            border: '1px solid rgba(107, 103, 168, 0.12)',
-            background: 'transparent',
-            pointerEvents: 'none',
-            animation: 'fabPulse 2s ease-out infinite',
-            zIndex: 0,
-          }}
-        />
-      )}
-
-      {/* Inline keyframes for the pulse ring */}
-      <style>{`
-        @keyframes fabPulse {
-          0% {
-            transform: scale(1);
-            opacity: 0.5;
-          }
-          100% {
-            transform: scale(2.8);
-            opacity: 0;
-          }
-        }
-      `}</style>
+      {/* Menu items — stack upward from FAB (after FAB in column-reverse = above it) */}
+      {items.map((item, i) => {
+        const delay = i * 0.04;
+        return (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => handleItemClick(item)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              border: 'none',
+              background: 'var(--color-bg-elevated)',
+              borderRadius: 9999,
+              padding: '10px 18px',
+              cursor: 'pointer',
+              boxShadow: '0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05)',
+              transform: open
+                ? 'translateY(0) scale(1)'
+                : `translateY(${16 + i * 8}px) scale(0.8)`,
+              opacity: open ? 1 : 0,
+              pointerEvents: open ? 'auto' : 'none',
+              transition: `all 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) ${delay}s`,
+              ...(open ? {} : { transitionDelay: `${(items.length - 1 - i) * 0.03}s` }),
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = `rgba(${parseColorToRgb(item.color)}, 0.08)`;
+              e.currentTarget.style.boxShadow = `0 4px 16px ${item.color}20`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'var(--color-bg-elevated)';
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05)';
+            }}
+          >
+            <span style={{ fontSize: 16, color: item.color, display: 'flex' }}>
+              {item.icon}
+            </span>
+            <span style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--color-ink-primary)',
+              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            }}>
+              {item.label}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-/** ====== Pre-built menu item presets ====== */
+/** Extract "r, g, b" from a hex color for rgba() usage */
+function parseColorToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r}, ${g}, ${b}`;
+}
 
+/** Pre-built menu items */
 export function useQuickActionItems(
   onCreateProject: () => void,
   onToggleTheme: () => void,
@@ -289,7 +166,6 @@ export function useQuickActionItems(
       icon: <ProjectOutlined />,
       label: '新建项目',
       color: '#9b97d4',
-      bg: 'rgba(155, 151, 212, 0.12)',
       onClick: onCreateProject,
     },
     {
@@ -297,7 +173,6 @@ export function useQuickActionItems(
       icon: <ThunderboltOutlined />,
       label: '快速任务',
       color: '#f0a850',
-      bg: 'rgba(240, 168, 80, 0.12)',
       onClick: () => navigate(ROUTES.PROJECTS),
     },
     {
@@ -305,7 +180,6 @@ export function useQuickActionItems(
       icon: <BgColorsOutlined />,
       label: '主题切换',
       color: '#9bbc9e',
-      bg: 'rgba(155, 188, 158, 0.12)',
       onClick: onToggleTheme,
     },
     {
@@ -313,7 +187,6 @@ export function useQuickActionItems(
       icon: <TranslationOutlined />,
       label: '语言',
       color: '#99bcdb',
-      bg: 'rgba(153, 188, 219, 0.12)',
       onClick: onToggleLanguage,
     },
     {
@@ -321,7 +194,6 @@ export function useQuickActionItems(
       icon: <SettingOutlined />,
       label: '设置',
       color: '#c4a0d4',
-      bg: 'rgba(196, 160, 212, 0.12)',
       onClick: () => navigate(ROUTES.SETTINGS),
     },
   ];
