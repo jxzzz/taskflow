@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -45,6 +46,15 @@ public class ProjectResponse {
 
     @Schema(description = "当前用户是否为项目成员")
     private Boolean isMember;
+
+    @Schema(description = "项目状态: active=进行中, completed=已完成, archived=已归档")
+    private String status;
+
+    @Schema(description = "项目开始日期")
+    private LocalDate startDate;
+
+    @Schema(description = "项目截止日期")
+    private LocalDate endDate;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;

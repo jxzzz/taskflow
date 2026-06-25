@@ -5,6 +5,8 @@ import {
   UserOutlined,
   CheckSquareOutlined,
   ArrowRightOutlined,
+  GlobalOutlined,
+  LockOutlined,
 } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
@@ -17,6 +19,7 @@ import { ROUTES } from '@/router/routes';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppStore, COLOR_SCHEMES, type ColorScheme, type Language } from '@/stores/appStore';
 import type { CreateProjectRequest } from '@/types/project';
+import { PROJECT_STATUS_CONFIG } from '@/types/project';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -197,13 +200,14 @@ export default function DashboardPage() {
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  {/* Top row: name + arrow */}
+                  {/* Top row: name + status + arrow */}
                   <div
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       marginBottom: 8,
+                      gap: 8,
                     }}
                   >
                     <div
@@ -212,10 +216,22 @@ export default function DashboardPage() {
                         fontSize: 15,
                         color: 'var(--color-ink-primary)',
                         lineHeight: 1.3,
+                        flex: 1,
+                        minWidth: 0,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
                       {p.name}
                     </div>
+                    <Tag color={(PROJECT_STATUS_CONFIG[p.status] || PROJECT_STATUS_CONFIG.active).color} style={{ margin: 0, flexShrink: 0, fontSize: 11 }}>
+                      {(PROJECT_STATUS_CONFIG[p.status] || PROJECT_STATUS_CONFIG.active).label}
+                    </Tag>
+                    <Tag style={{ margin: 0, flexShrink: 0, fontSize: 11, background: p.isPublic ? 'rgba(155,187,158,0.12)' : 'rgba(0,0,0,0.05)', color: p.isPublic ? '#5a8a5c' : 'var(--color-ink-tertiary)', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                      {p.isPublic ? <GlobalOutlined style={{ fontSize: 10 }} /> : <LockOutlined style={{ fontSize: 10 }} />}
+                      {p.isPublic ? '公开' : '私有'}
+                    </Tag>
                     <ArrowRightOutlined
                       style={{ color: 'var(--color-ink-disabled)', fontSize: 13, flexShrink: 0 }}
                     />
@@ -305,7 +321,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
 
-                    {/* Date */}
+                    {/* Date range or create time */}
                     <Text
                       style={{
                         fontSize: 11,
@@ -314,7 +330,9 @@ export default function DashboardPage() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {dayjs(p.createTime).format('YYYY/MM/DD')}
+                      {p.startDate || p.endDate
+                        ? `${p.startDate ? dayjs(p.startDate).format('MM/DD') : '?'} — ${p.endDate ? dayjs(p.endDate).format('MM/DD') : '?'}`
+                        : dayjs(p.createTime).format('YYYY/MM/DD')}
                     </Text>
                   </div>
                 </div>
@@ -396,6 +414,12 @@ export default function DashboardPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <Tag style={{ margin: 0, background: 'rgba(155,151,212,0.08)', color: '#6b67a8', border: 'none', fontSize: 10 }}>
                         {p.ownerName}
+                      </Tag>
+                      <Tag color={(PROJECT_STATUS_CONFIG[p.status] || PROJECT_STATUS_CONFIG.active).color} style={{ margin: 0, fontSize: 10 }}>
+                        {(PROJECT_STATUS_CONFIG[p.status] || PROJECT_STATUS_CONFIG.active).label}
+                      </Tag>
+                      <Tag style={{ margin: 0, fontSize: 10, background: 'rgba(155,187,158,0.12)', color: '#5a8a5c', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                        <GlobalOutlined style={{ fontSize: 10 }} />公开
                       </Tag>
                     </div>
                   </div>

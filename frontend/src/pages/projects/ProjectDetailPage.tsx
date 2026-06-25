@@ -17,7 +17,7 @@ import {
   ArrowLeftOutlined,
   EditOutlined,
   TeamOutlined,
-  ClockCircleOutlined,
+  CalendarOutlined,
   LinkOutlined,
   PlusOutlined,
   AppstoreOutlined,
@@ -43,6 +43,7 @@ import { useKanbanDrag } from '@/pages/projects/useKanbanDrag';
 import { useTaskCreation } from '@/pages/projects/useTaskCreation';
 import { useKanbanShortcuts } from '@/pages/projects/useKanbanShortcuts';
 import { useQueryClient } from '@tanstack/react-query';
+import { PROJECT_STATUS_CONFIG } from '@/types/project';
 import type { TaskCardBrief } from '@/types/task';
 
 const { Text, Title } = Typography;
@@ -223,15 +224,20 @@ export default function ProjectDetailPage() {
           )}
           {project.isPublic ? '公开' : '私有'}
         </Tag>
+        <Tag color={(PROJECT_STATUS_CONFIG[project.status] || PROJECT_STATUS_CONFIG.active).color} style={{ margin: 0 }}>
+          {(PROJECT_STATUS_CONFIG[project.status] || PROJECT_STATUS_CONFIG.active).label}
+        </Tag>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
         <TeamOutlined style={{ color: 'var(--color-lavender)', fontSize: 13 }} />
         <Text style={{ fontSize: 13, color: 'var(--color-ink-secondary)' }}>
           {project.memberCount} 人
         </Text>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
-        <ClockCircleOutlined style={{ color: 'var(--color-ink-tertiary)', fontSize: 13 }} />
+        <CalendarOutlined style={{ color: 'var(--color-ink-tertiary)', fontSize: 13 }} />
         <Text style={{ fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
-          {project.createTime ? dayjs(project.createTime).format('YYYY-MM-DD') : '—'}
+          {project.startDate || project.endDate
+            ? `${project.startDate ? dayjs(project.startDate).format('YYYY/MM/DD') : '?'} — ${project.endDate ? dayjs(project.endDate).format('YYYY/MM/DD') : '?'}`
+            : project.createTime ? dayjs(project.createTime).format('YYYY-MM-DD') : '—'}
         </Text>
         {project.projectUrl && (
           <>

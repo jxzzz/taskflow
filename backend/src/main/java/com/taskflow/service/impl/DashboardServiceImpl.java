@@ -132,6 +132,9 @@ public class DashboardServiceImpl implements DashboardService {
                 .listCount(listCount)
                 .taskCount(taskCount)
                 .isPublic(project.getIsPublic() != null ? project.getIsPublic() : false)
+                .status(project.getStatus() != null ? project.getStatus() : "active")
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
                 .createTime(project.getCreateTime())
                 .build();
     }

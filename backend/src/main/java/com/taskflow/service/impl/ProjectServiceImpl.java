@@ -57,6 +57,9 @@ public class ProjectServiceImpl implements ProjectService {
                 .description(description)
                 .projectUrl(request.getProjectUrl())
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
+                .status(request.getStatus() != null ? request.getStatus() : "active")
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
                 .ownerId(currentUserId)
                 .build();
         projectMapper.insert(project);
@@ -144,6 +147,14 @@ public class ProjectServiceImpl implements ProjectService {
         if (request.getIsPublic() != null) {
             project.setIsPublic(request.getIsPublic());
         }
+        if (StringUtils.hasText(request.getStatus())) {
+            project.setStatus(request.getStatus());
+        }
+        if (request.getStartDate() != null) {
+            project.setStartDate(request.getStartDate());
+        }
+        // endDate 允许设为 null（清除截止日期）
+        project.setEndDate(request.getEndDate());
 
         projectMapper.updateById(project);
         return buildResponse(project, currentUserId);
@@ -271,6 +282,9 @@ public class ProjectServiceImpl implements ProjectService {
                 .description(project.getDescription())
                 .projectUrl(project.getProjectUrl())
                 .isPublic(project.getIsPublic() != null ? project.getIsPublic() : false)
+                .status(project.getStatus() != null ? project.getStatus() : "active")
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
                 .isMember(isMember)
                 .ownerId(project.getOwnerId())
                 .ownerName(ownerName)

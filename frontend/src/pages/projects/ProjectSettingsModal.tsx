@@ -15,6 +15,7 @@ import {
   Alert,
   Modal,
   App,
+  DatePicker,
 } from 'antd';
 import {
   SettingOutlined,
@@ -33,7 +34,8 @@ import {
 } from '@/hooks/useMembers';
 import { useAuthStore } from '@/stores/authStore';
 import { userApi } from '@/api/users';
-import type { UpdateProjectRequest } from '@/types/project';
+import type { UpdateProjectRequest, ProjectStatus } from '@/types/project';
+import { PROJECT_STATUS_CONFIG } from '@/types/project';
 import type { MemberInfo } from '@/types/member';
 import type { UserInfo } from '@/types/auth';
 import dayjs from 'dayjs';
@@ -153,7 +155,7 @@ function GeneralSettings({
   onClose,
 }: {
   projectId: number;
-  project: { name: string; description: string; projectUrl?: string; isPublic: boolean };
+  project: { name: string; description: string; projectUrl?: string; isPublic: boolean; status: ProjectStatus; startDate?: string; endDate?: string };
   isOwner: boolean;
   onClose: () => void;
 }) {
@@ -164,7 +166,11 @@ function GeneralSettings({
   const handleSave = () => {
     form.validateFields().then((values) => {
       updateMutation.mutate(
-        { id: projectId, data: values },
+        { id: projectId, data: {
+          ...values,
+          startDate: values.startDate ? dayjs(values.startDate).format('YYYY-MM-DD') : undefined,
+          endDate: values.endDate ? dayjs(values.endDate).format('YYYY-MM-DD') : undefined,
+        } },
         {
           onSuccess: () => {
             message.success('项目信息已更新');
@@ -174,6 +180,12 @@ function GeneralSettings({
       );
     });
   };
+
+  const STATUS_OPTIONS: { value: ProjectStatus; label: string }[] = [
+    { value: 'active', label: PROJECT_STATUS_CONFIG.active.label },
+    { value: 'completed', label: PROJECT_STATUS_CONFIG.completed.label },
+    { value: 'archived', label: PROJECT_STATUS_CONFIG.archived.label },
+  ];
 
   return (
     <div>
@@ -191,6 +203,9 @@ function GeneralSettings({
           description: project.description,
           projectUrl: project.projectUrl || '',
           isPublic: project.isPublic,
+          status: project.status || 'active',
+          startDate: project.startDate ? dayjs(project.startDate) : undefined,
+          endDate: project.endDate ? dayjs(project.endDate) : undefined,
         }}
         disabled={!isOwner}
         style={{ maxWidth: 440 }}
@@ -206,6 +221,19 @@ function GeneralSettings({
         <Form.Item name="projectUrl" label="项目地址" rules={[{ type: 'url', message: '请输入有效的 URL' }]}>
           <Input maxLength={500} placeholder="https://github.com/..." />
         </Form.Item>
+
+        <Form.Item name="status" label="项目状态">
+          <Select options={STATUS_OPTIONS} />
+        </Form.Item>
+
+        <div style={{ display: 'flex', gap: 12 }}>
+          <Form.Item name="startDate" label="开始日期" style={{ flex: 1, marginBottom: 0 }}>
+            <DatePicker style={{ width: '100%' }} placeholder="选择开始日期" />
+          </Form.Item>
+          <Form.Item name="endDate" label="截止日期" style={{ flex: 1, marginBottom: 0 }}>
+            <DatePicker style={{ width: '100%' }} placeholder="选择截止日期" />
+          </Form.Item>
+        </div>
 
         <Form.Item name="isPublic" label="公开项目" valuePropName="checked">
           <Switch />

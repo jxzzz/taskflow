@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 @Schema(description = "创建看板请求")
 public class ProjectCreateRequest {
@@ -24,4 +26,13 @@ public class ProjectCreateRequest {
 
     @Schema(description = "是否公开: 默认false仅自己可见, true所有人可见", example = "false")
     private Boolean isPublic = false;
+
+    @Schema(description = "项目状态: active=进行中, completed=已完成, archived=已归档", example = "active")
+    private String status = "active";
+
+    @Schema(description = "项目开始日期", example = "2026-01-01")
+    private LocalDate startDate;
+
+    @Schema(description = "项目截止日期", example = "2026-12-31")
+    private LocalDate endDate;
 }

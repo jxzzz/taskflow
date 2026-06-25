@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Row, Col, Button, Modal, Typography, Space, Tag } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, TeamOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { Row, Col, Button, Typography, Space, Tag } from 'antd';
+import { PlusOutlined, EditOutlined, TeamOutlined, UnorderedListOutlined, CalendarOutlined, GlobalOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
 import CreateProjectModal from '@/components/common/CreateProjectModal';
-import { useProjects, useCreateProject, useDeleteProject, useUpdateProject } from '@/hooks/useProjects';
+import { useProjects, useCreateProject, useUpdateProject } from '@/hooks/useProjects';
 import type { Project, CreateProjectRequest } from '@/types/project';
+import { PROJECT_STATUS_CONFIG } from '@/types/project';
+import dayjs from 'dayjs';
 
 const { Text } = Typography;
 
@@ -33,7 +35,6 @@ export default function ProjectListPage() {
 
   const { data, isFetching } = useProjects(1, 100, 'my');
   const createMutation = useCreateProject();
-  const deleteMutation = useDeleteProject();
   const updateMutation = useUpdateProject();
   const navigate = useNavigate();
 
@@ -43,8 +44,12 @@ export default function ProjectListPage() {
   const handleUpdate = (values: CreateProjectRequest) => {
     if (editProject) updateMutation.mutate({ id: editProject.id, data: values }, { onSuccess: () => setEditProject(null) });
   };
-  const handleDelete = (p: Project) => {
-    Modal.confirm({ title: '删除项目', content: `确定删除「${p.name}」？所有列表和任务将被级联删除。`, okText: '删除', okType: 'danger', cancelText: '取消', onOk: () => deleteMutation.mutate(p.id) });
+
+  /** 格式化日期范围 */
+  const formatDateRange = (start?: string, end?: string) => {
+    if (!start && !end) return null;
+    const fmt = (d?: string) => (d ? dayjs(d).format('YYYY/MM/DD') : '?');
+    return `${fmt(start)} — ${fmt(end)}`;
   };
 
   return (
@@ -56,6 +61,9 @@ export default function ProjectListPage() {
         {data?.records.map((project) => {
           const cover = getCover(project.id);
           const tag = tagStyles[project.id % tagStyles.length];
+          const statusCfg = PROJECT_STATUS_CONFIG[project.status] || PROJECT_STATUS_CONFIG.active;
+          const dateRange = formatDateRange(project.startDate, project.endDate);
+
           return (
             <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
               <div onClick={() => navigate(`/projects/${project.id}`)}
@@ -65,7 +73,15 @@ export default function ProjectListPage() {
                 onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-elevated)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-card)'; e.currentTarget.style.transform = 'none'; }}>
                 {/* Color cover */}
-                <div style={{ height: 72, background: cover }} />
+                <div style={{ height: 72, background: cover, position: 'relative' }}>
+                  <Tag style={{ position: 'absolute', top: 10, left: 10, margin: 0, border: 'none', background: 'rgba(255,255,255,0.25)', color: '#fff', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                    {project.isPublic ? <GlobalOutlined style={{ fontSize: 10 }} /> : <LockOutlined style={{ fontSize: 10 }} />}
+                    {project.isPublic ? '公开' : '私有'}
+                  </Tag>
+                  <Tag color={statusCfg.color} style={{ position: 'absolute', top: 10, right: 10, margin: 0, border: 'none' }}>
+                    {statusCfg.label}
+                  </Tag>
+                </div>
                 {/* Body */}
                 <div style={{ padding: '14px 16px 10px' }}>
                   <div style={{ fontWeight: 600, fontSize: 14, color: '#2b2825', marginBottom: 4 }}>{project.name}</div>
@@ -73,6 +89,11 @@ export default function ProjectListPage() {
                     <Text style={{ fontSize: 12, color: 'rgba(43,40,37,0.48)', lineHeight: 1.4, display: 'block', marginBottom: 8 }}>
                       {project.description.slice(0, 55)}{project.description.length > 55 ? '…' : ''}
                     </Text>
+                  )}
+                  {dateRange && (
+                    <div style={{ fontSize: 11, color: 'rgba(43,40,37,0.35)', marginBottom: 4 }}>
+                      <CalendarOutlined style={{ marginRight: 4 }} />{dateRange}
+                    </div>
                   )}
                 </div>
                 {/* Footer tags */}
@@ -85,12 +106,8 @@ export default function ProjectListPage() {
                       <UnorderedListOutlined style={{ fontSize: 10 }} /> {project.listCount}
                     </Tag>
                   </Space>
-                  <Space size={2}>
-                    <Button type="text" size="small" icon={<EditOutlined />}
-                      onClick={(e) => { e.stopPropagation(); setEditProject(project); }} style={{ color: 'rgba(43,40,37,0.4)' }} />
-                    <Button type="text" size="small" icon={<DeleteOutlined />}
-                      onClick={(e) => { e.stopPropagation(); handleDelete(project); }} style={{ color: 'rgba(43,40,37,0.4)' }} />
-                  </Space>
+                  <Button type="text" size="small" icon={<EditOutlined />}
+                    onClick={(e) => { e.stopPropagation(); setEditProject(project); }} style={{ color: 'rgba(43,40,37,0.4)' }} />
                 </div>
               </div>
             </Col>
@@ -119,7 +136,15 @@ export default function ProjectListPage() {
         onClose={() => setEditProject(null)}
         onSubmit={handleUpdate}
         loading={updateMutation.isPending}
-        initialValues={editProject ? { name: editProject.name, description: editProject.description, projectUrl: editProject.projectUrl, isPublic: editProject.isPublic } : undefined}
+        initialValues={editProject ? {
+          name: editProject.name,
+          description: editProject.description,
+          projectUrl: editProject.projectUrl,
+          isPublic: editProject.isPublic,
+          status: editProject.status,
+          startDate: editProject.startDate,
+          endDate: editProject.endDate,
+        } : undefined}
       />
     </div>
   );

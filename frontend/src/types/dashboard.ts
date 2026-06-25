@@ -1,3 +1,5 @@
+import type { ProjectStatus } from './project';
+
 /** 项目预览卡片，匹配 ProjectPreview.java */
 export interface ProjectPreview {
   id: number;
@@ -8,6 +10,9 @@ export interface ProjectPreview {
   listCount: number;
   taskCount: number;
   isPublic: boolean;
+  status: ProjectStatus;
+  startDate?: string;
+  endDate?: string;
   createTime: string;
 }
 

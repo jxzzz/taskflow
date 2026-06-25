@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -29,6 +30,12 @@ public class Project {
     private String projectUrl;
 
     private Boolean isPublic;
+
+    private String status;
+
+    private LocalDate startDate;
+
+    private LocalDate endDate;
 
     private LocalDateTime createTime;
 }
