@@ -95,7 +95,10 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public IPage<TaskResponse> listByList(Long listId, int page, int size, Long currentUserId) {
         TaskList list = getTaskListOrThrow(listId);
-        checkMemberByProjectId(list.getProjectId(), currentUserId);
+        // 公开项目允许任何人查看
+        if (!isProjectPublic(list.getProjectId())) {
+            checkMemberByProjectId(list.getProjectId(), currentUserId);
+        }
 
         Page<Task> pageParam = new Page<>(page, size);
         IPage<Task> taskPage = taskMapper.selectPage(pageParam,
@@ -111,7 +114,10 @@ public class TaskServiceImpl implements TaskService {
     public TaskResponse getById(Long id, Long currentUserId) {
         Task task = getTaskOrThrow(id);
         TaskList list = taskListMapper.selectById(task.getListId());
-        checkMemberByProjectId(list.getProjectId(), currentUserId);
+        // 公开项目允许任何人查看
+        if (!isProjectPublic(list.getProjectId())) {
+            checkMemberByProjectId(list.getProjectId(), currentUserId);
+        }
         return buildResponse(task);
     }
 
@@ -199,6 +205,11 @@ public class TaskServiceImpl implements TaskService {
     }
 
     // ==================== 权限校验 ====================
+
+    private boolean isProjectPublic(Long projectId) {
+        Project project = projectMapper.selectById(projectId);
+        return project != null && Boolean.TRUE.equals(project.getIsPublic());
+    }
 
     private void checkMemberByProjectId(Long projectId, Long userId) {
         boolean isMember = projectMemberMapper.selectCount(

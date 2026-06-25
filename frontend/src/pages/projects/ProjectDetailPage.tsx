@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
+  App,
   Button,
   Space,
   Spin,
@@ -62,7 +63,15 @@ export default function ProjectDetailPage() {
   const [newListName, setNewListName] = useState('');
   const [addingList, setAddingList] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-  const { data: taskDetail, isFetching: taskLoading } = useTaskDetail(selectedTaskId);
+  const { data: taskDetail, isFetching: taskLoading, error: taskError } = useTaskDetail(selectedTaskId);
+  const { message } = App.useApp();
+
+  // 卡片详情加载失败时弹出错误提示
+  useEffect(() => {
+    if (taskError) {
+      message.error((taskError as Error)?.message || '加载任务失败');
+    }
+  }, [taskError, message]);
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const [taskCreateListId, setTaskCreateListId] = useState<number | undefined>();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
@@ -577,7 +586,10 @@ export default function ProjectDetailPage() {
         {!taskDetail && taskLoading && <Skeleton active paragraph={{ rows: 6 }} />}
         {taskDetail && <TaskDetailContent task={taskDetail} />}
         {!taskDetail && !taskLoading && (
-          <Empty description="未找到该任务" style={{ marginTop: 40 }} />
+          <Empty
+            description={(taskError as Error)?.message || '未找到该任务'}
+            style={{ marginTop: 40 }}
+          />
         )}
       </Drawer>
 
