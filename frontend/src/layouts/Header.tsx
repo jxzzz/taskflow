@@ -2,6 +2,7 @@ import { Layout, Avatar, Dropdown, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import { UserOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppStore } from '@/stores/appStore';
 import { ROUTES } from '@/router/routes';
@@ -13,12 +14,13 @@ export default function Header() {
   const { user, logout } = useAuthStore();
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const dropdownItems: MenuProps['items'] = [
     { key: 'profile', icon: <UserOutlined />, label: '个人信息', onClick: () => navigate(ROUTES.SETTINGS) },
     { type: 'divider' },
     { key: 'logout', icon: <LogoutOutlined />, label: '退出登录', danger: true,
-      onClick: () => { logout(); navigate(ROUTES.LOGIN, { replace: true }); } },
+      onClick: () => { queryClient.clear(); logout(); navigate(ROUTES.LOGIN, { replace: true }); } },
   ];
 
   const initials = user?.username?.slice(0, 1).toUpperCase() || '?';

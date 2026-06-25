@@ -49,9 +49,12 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public ProjectResponse create(ProjectCreateRequest request, Long currentUserId) {
         // 1. 插入看板
+        String description = StringUtils.hasText(request.getDescription())
+                ? request.getDescription()
+                : "暂无项目描述";
         Project project = Project.builder()
                 .name(request.getName())
-                .description(request.getDescription())
+                .description(description)
                 .projectUrl(request.getProjectUrl())
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
                 .ownerId(currentUserId)

@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/stores/authStore';
 import type { LoginRequest, RegisterRequest } from '@/types/auth';
@@ -10,10 +10,13 @@ export function useLogin() {
   const login = useAuthStore((s) => s.login);
   const { message } = App.useApp();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (res) => {
+      // 切换用户时清除旧缓存，避免展示上一个用户的数据
+      queryClient.clear();
       login(res.token, res.user);
       message.success(`欢迎回来，${res.user.username}`);
       // 跳转到 returnUrl 或默认控制台
