@@ -32,6 +32,7 @@ export function useCreateProject() {
       message.success(`项目「${project.name}」创建成功`);
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
     },
     onError: (error: Error) => {
       message.error(error.message || '创建失败');
@@ -52,6 +53,7 @@ export function useUpdateProject() {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects', project.id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
     },
     onError: (error: Error) => {
       message.error(error.message || '更新失败');
@@ -70,6 +72,7 @@ export function useDeleteProject() {
       message.success('项目已删除');
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['activities'] });
     },
     onError: (error: Error) => {
       message.error(error.message || '删除失败');
