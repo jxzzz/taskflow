@@ -1,7 +1,11 @@
 package com.taskflow.listener;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.taskflow.config.RabbitMQConfig;
 import com.taskflow.dto.MessageEvent;
+import com.taskflow.dto.OperationLogEntry;
+import com.taskflow.service.ActivityLogService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
@@ -14,12 +18,14 @@ import org.springframework.stereotype.Component;
  * 2. 处理成功 → Spring 自动 ack，删除消息
  * 3. 抛异常    → Spring 自动 nack，按重试配置重新投递
  * 4. 重试 3 次仍失败 → RabbitMQ 自动转发到死信队列
- *
- * 这种模式下不需要手动 ack/nack，Spring 根据方法是否抛异常自动判断。
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class TaskEventListener {
+
+    private final ActivityLogService activityLogService;
+    private final ObjectMapper objectMapper;
 
     /**
      * 监听任务通知队列
@@ -27,37 +33,33 @@ public class TaskEventListener {
     @RabbitListener(queues = RabbitMQConfig.QUEUE_TASK_NOTIFY)
     public void handleTaskNotify(MessageEvent event) {
         log.info("收到任务通知: id={}, payload={}", event.getMessageId(), event.getPayload());
-
-        // ====== 业务处理 ======
-        doBusiness(event);
-        // 方法正常结束 → Spring 自动 ack，消息删除
-        // 方法抛异常   → Spring 自动 nack，触发重试
+        // TODO: 任务通知业务逻辑
     }
 
     /**
-     * 监听操作日志队列
+     * 监听操作日志队列 — 反序列化并持久化到 activity_log 表
      */
     @RabbitListener(queues = RabbitMQConfig.QUEUE_OPERATION_LOG)
     public void handleOperationLog(MessageEvent event) {
-        log.info("收到操作日志: id={}, payload={}", event.getMessageId(), event.getPayload());
-
-        doBusiness(event);
+        log.info("收到操作日志: id={}, type={}", event.getMessageId(), event.getType());
+        try {
+            OperationLogEntry entry = objectMapper.readValue(
+                    event.getPayload(), OperationLogEntry.class);
+            activityLogService.create(entry);
+            log.info("操作日志已持久化: actionType={}, entityType={}, entityId={}",
+                    entry.getActionType(), entry.getEntityType(), entry.getEntityId());
+        } catch (Exception e) {
+            log.error("处理操作日志失败: id={}, payload={}", event.getMessageId(), event.getPayload(), e);
+            throw new RuntimeException("操作日志处理失败", e); // 触发重试
+        }
     }
 
     /**
      * 死信队列：重试耗尽后的消息最终到这里
-     * 只记录日志和 ack（不重试，防止死信堆积）
      */
     @RabbitListener(queues = RabbitMQConfig.QUEUE_TASK_DEAD)
     public void handleDeadMessage(MessageEvent event) {
         log.warn("死信消息: id={}, type={}, payload={} — 请检查原因",
                 event.getMessageId(), event.getType(), event.getPayload());
-        // 生产环境：写入数据库告警表 / 发送钉钉通知
-        // 方法正常结束 → 自动 ack，不留堆积
-    }
-
-    private void doBusiness(MessageEvent event) {
-        log.info("执行业务逻辑: type={}", event.getType());
-        // 真实业务写在这里
     }
 }

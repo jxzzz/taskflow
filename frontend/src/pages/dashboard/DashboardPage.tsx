@@ -13,7 +13,9 @@ import PageHeader from '@/components/common/PageHeader';
 import QuickActionFab from '@/components/common/QuickActionFab';
 import { useQuickActionItems } from '@/components/common/QuickActionFab';
 import CreateProjectModal from '@/components/common/CreateProjectModal';
+import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
 import { useDashboard } from '@/hooks/useDashboard';
+import { useActivities } from '@/hooks/useActivity';
 import { useCreateProject } from '@/hooks/useProjects';
 import { ROUTES } from '@/router/routes';
 import { useAuthStore } from '@/stores/authStore';
@@ -27,6 +29,7 @@ const { Title, Text } = Typography;
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { data, isFetching } = useDashboard();
+  const { data: activityData, isFetching: activityLoading } = useActivities();
 
   // App-wide settings
   const colorScheme = useAppStore((s) => s.colorScheme);
@@ -352,6 +355,12 @@ export default function DashboardPage() {
           </Text>
         </Card>
       )}
+
+      {/* Activity Timeline */}
+      <ActivityTimeline
+        activities={activityData?.records}
+        loading={activityLoading}
+      />
 
       {/* Public projects */}
       {data?.publicProjects && data.publicProjects.length > 0 && (

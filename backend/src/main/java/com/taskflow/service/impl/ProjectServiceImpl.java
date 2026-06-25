@@ -7,6 +7,7 @@ import com.taskflow.dto.ProjectCreateRequest;
 import com.taskflow.dto.ProjectResponse;
 import com.taskflow.dto.ProjectUpdateRequest;
 import com.taskflow.dto.ChecklistItemResponse;
+import com.taskflow.dto.OperationLogEntry;
 import com.taskflow.dto.TaskCardBrief;
 import com.taskflow.dto.TaskListSummary;
 import com.taskflow.entity.ChecklistItem;
@@ -22,7 +23,9 @@ import com.taskflow.mapper.ChecklistItemMapper;
 import com.taskflow.mapper.TaskListMapper;
 import com.taskflow.mapper.TaskMapper;
 import com.taskflow.mapper.UserMapper;
+import com.taskflow.service.MessageProducer;
 import com.taskflow.service.ProjectService;
+import cn.hutool.json.JSONUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +47,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final TaskListMapper taskListMapper;
     private final TaskMapper taskMapper;
     private final ChecklistItemMapper checklistItemMapper;
+    private final MessageProducer messageProducer;
 
     @Override
     @Transactional
@@ -74,6 +78,23 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 3. 重新查询以获取数据库生成的 createTime
         project = projectMapper.selectById(project.getId());
+
+        // 4. 发送操作日志
+        User currentUser = userMapper.selectById(currentUserId);
+        String username = currentUser != null ? currentUser.getUsername() : "未知用户";
+        OperationLogEntry logEntry = OperationLogEntry.builder()
+                .actionType("PROJECT_CREATE")
+                .entityType("PROJECT")
+                .entityId(project.getId())
+                .entityName(project.getName())
+                .userId(currentUserId)
+                .username(username)
+                .projectId(project.getId())
+                .description(String.format("%s 创建了项目「%s」", username, project.getName()))
+                .timestamp(System.currentTimeMillis())
+                .build();
+        messageProducer.sendOperationLog(JSONUtil.toJsonStr(logEntry));
+
         return buildResponse(project, currentUserId);
     }
 
