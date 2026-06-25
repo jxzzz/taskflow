@@ -10,6 +10,7 @@ export function useTaskDetail(id: number | null) {
     queryFn: () => taskApi.getById(id!),
     enabled: !!id,
     staleTime: 30 * 1000,
+    placeholderData: (prev) => prev,
   });
 }
 

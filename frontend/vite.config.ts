@@ -35,8 +35,13 @@ export default defineConfig({
             if (id.includes('@tanstack')) {
               return 'query-vendor';
             }
-            return 'vendor';
+            // Don't force remaining node_modules into a single 'vendor' chunk.
+            // Rollup will auto-split them, avoiding circular dependencies
+            // between chunks (e.g. dayjs locale ← antd's bundled dayjs).
           }
+          // Don't manually chunk app code — let Rollup handle it.
+          // This prevents CJS interop helpers from landing in the entry
+          // chunk where they create cycles with vendor chunks.
         },
       },
     },

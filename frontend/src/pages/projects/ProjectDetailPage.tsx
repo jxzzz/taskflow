@@ -574,9 +574,9 @@ export default function ProjectDetailPage() {
         destroyOnClose
         styles={{ body: { padding: '20px 24px' } }}
       >
-        {taskLoading && <Skeleton active paragraph={{ rows: 6 }} />}
-        {!taskLoading && taskDetail && <TaskDetailContent task={taskDetail} />}
-        {!taskLoading && !taskDetail && (
+        {!taskDetail && taskLoading && <Skeleton active paragraph={{ rows: 6 }} />}
+        {taskDetail && <TaskDetailContent task={taskDetail} />}
+        {!taskDetail && !taskLoading && (
           <Empty description="未找到该任务" style={{ marginTop: 40 }} />
         )}
       </Drawer>
