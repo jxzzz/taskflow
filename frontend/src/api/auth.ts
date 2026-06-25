@@ -10,4 +10,8 @@ export const authApi = {
   /** 注册，POST /api/v1/auth/register */
   register: (data: RegisterRequest) =>
     client.post<any, UserInfo>('/auth/register', data),
+
+  /** 获取当前登录用户（用于页面刷新恢复登录态），GET /api/v1/auth/me */
+  getMe: () =>
+    client.get<any, UserInfo>('/auth/me'),
 };

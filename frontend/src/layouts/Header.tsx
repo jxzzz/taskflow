@@ -45,7 +45,7 @@ export default function Header() {
           onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
         >
-          <Avatar size={32} style={{ backgroundColor: 'var(--color-lavender-soft)', color: 'var(--color-lavender)', fontWeight: 600, fontSize: 13, flexShrink: 0 }}>
+          <Avatar size={32} src={user?.avatar || undefined} style={{ backgroundColor: 'var(--color-lavender-soft)', color: 'var(--color-lavender)', fontWeight: 600, fontSize: 13, flexShrink: 0 }}>
             {initials}
           </Avatar>
           <Text style={{ color: 'var(--color-ink-primary)', fontSize: 13.5, fontWeight: 500, lineHeight: '32px' }}>

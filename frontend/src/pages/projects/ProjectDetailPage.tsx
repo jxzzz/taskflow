@@ -404,6 +404,7 @@ export default function ProjectDetailPage() {
                   list={list}
                   projectId={projectId}
                   allLists={lists}
+                  readOnly={!isMember}
                   onCardMoved={() => {}}
                   onCardClick={(cardId) => setSelectedTaskId(cardId)}
                   onTaskDeleted={(taskId) => {

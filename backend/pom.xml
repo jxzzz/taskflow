@@ -121,6 +121,14 @@
             <version>${hutool.version}</version>
         </dependency>
 
+        <!-- DevTools 热加载：改代码后自动重启，无需手动重启 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

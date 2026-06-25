@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import { router } from '@/router';
 import { useAppStore, COLOR_SCHEMES } from '@/stores/appStore';
+import { useAuthInit } from '@/hooks/useAuthInit';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,6 +73,9 @@ function AppInner() {
   const colorScheme = useAppStore((s) => s.colorScheme);
   const language = useAppStore((s) => s.language);
   const csRgb = COLOR_SCHEMES[colorScheme].accentRgb;
+
+  // 页面刷新时恢复用户信息（有 token 但无 user → 调 /auth/me）
+  useAuthInit();
 
   // Sync dayjs locale
   useMemo(() => {

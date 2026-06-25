@@ -20,8 +20,9 @@ interface KanbanColumnProps {
   onCardClick: (cardId: number) => void;
   onTaskDeleted?: (taskId: number) => void;
   onAddTask?: (listId: number) => void;
-  /** When true, renders as a drag overlay (simplified, non-interactive) */
   isOverlay?: boolean;
+  /** When true, hides all edit/delete controls for non-member viewers */
+  readOnly?: boolean;
 }
 
 export default function KanbanColumn({
@@ -33,6 +34,7 @@ export default function KanbanColumn({
   onTaskDeleted,
   onAddTask,
   isOverlay = false,
+  readOnly = false,
 }: KanbanColumnProps) {
   const deleteTask = useDeleteTask();
   const moveTask = useMoveTask();
@@ -89,13 +91,17 @@ export default function KanbanColumn({
       icon: <EditOutlined />,
       label: '重命名',
     },
-    { type: 'divider' },
-    {
-      key: 'delete',
-      icon: <DeleteOutlined />,
-      label: '删除列表',
-      danger: true,
-    },
+    ...(readOnly ? [] : [{ type: 'divider' as const }]),
+    ...(readOnly
+      ? []
+      : [
+          {
+            key: 'delete' as const,
+            icon: <DeleteOutlined />,
+            label: '删除列表',
+            danger: true,
+          },
+        ]),
   ];
 
   const handleMoreMenuClick: MenuProps['onClick'] = ({ key }) => {
@@ -200,6 +206,7 @@ export default function KanbanColumn({
               card={card}
               listId={list.id}
               targetLists={targetLists}
+              readOnly={readOnly}
               onClick={() => onCardClick(card.id)}
               onDelete={() => {
                 deleteTask.mutate(card.id, {

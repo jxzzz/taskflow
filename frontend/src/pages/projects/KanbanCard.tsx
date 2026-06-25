@@ -32,6 +32,8 @@ interface KanbanCardProps {
   onMove: (targetListId: number) => void;
   /** When true, renders as a drag overlay (elevated, non-interactive) */
   isOverlay?: boolean;
+  /** When true, hides delete/move action buttons for non-member viewers */
+  readOnly?: boolean;
 }
 
 export default function KanbanCard({
@@ -42,6 +44,7 @@ export default function KanbanCard({
   onDelete,
   onMove,
   isOverlay = false,
+  readOnly = false,
 }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -234,7 +237,7 @@ export default function KanbanCard({
           </div>
 
           {/* Action buttons — only on hover */}
-          {!isOverlay && (
+          {!isOverlay && !readOnly && (
             <Space
               size={0}
               onClick={(e) => e.stopPropagation()}

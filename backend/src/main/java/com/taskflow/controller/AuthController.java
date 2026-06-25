@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,5 +56,12 @@ public class AuthController {
                 .build();
 
         return ApiResponse.success("登录成功", loginResponse);
+    }
+
+    @Operation(summary = "获取当前用户信息（用于页面刷新恢复登录态）")
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> me() {
+        Long userId = (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ApiResponse.success(userService.getById(userId));
     }
 }

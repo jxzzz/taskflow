@@ -120,7 +120,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (!Boolean.TRUE.equals(project.getIsPublic())) {
             checkMember(id, currentUserId);
         }
-        return buildDetailResponse(project);
+        return buildDetailResponse(project, currentUserId);
     }
 
     @Override
@@ -149,7 +149,6 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void delete(Long id, Long currentUserId) {
-        Project project = getProjectOrThrow(id);
         checkOwner(id, currentUserId);
 
         // 1. 级联软删除该看板所有列表下的所有卡片
@@ -281,8 +280,8 @@ public class ProjectServiceImpl implements ProjectService {
     /**
      * 构建包含列表和卡片的看板详情
      */
-    private ProjectResponse buildDetailResponse(Project project) {
-        ProjectResponse response = buildResponse(project);
+    private ProjectResponse buildDetailResponse(Project project, Long currentUserId) {
+        ProjectResponse response = buildResponse(project, currentUserId);
 
         // 查询所有列表（按 sortOrder 排序）
         List<TaskList> lists = taskListMapper.selectList(

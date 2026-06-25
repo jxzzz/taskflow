@@ -11,28 +11,39 @@ interface AuthState {
   login: (token: string, user: UserInfo) => void;
   logout: () => void;
   setUser: (user: UserInfo) => void;
+  finishInitialization: () => void;
 }
 
-/** 创建 store 时立即从 localStorage 恢复 token */
+/**
+ * 创建 store 时立即从 localStorage 恢复 token。
+ *
+ * user 对象无法从 localStorage 恢复（仅在登录时由后端返回），
+ * 因此有 token 但无 user 时需要异步调用 GET /auth/me 补齐，
+ * isInitialized 初始为 false 表示等待初始化完成。
+ */
 const storedToken = getToken();
 
 export const useAuthStore = create<AuthState>((set) => ({
   token: storedToken,
   user: null,
   isAuthenticated: !!storedToken,
-  isInitialized: true, // token 恢复是同步的，立即可用
+  isInitialized: false,
 
   login: (token, user) => {
     setToken(token);
-    set({ token, user, isAuthenticated: true });
+    set({ token, user, isAuthenticated: true, isInitialized: true });
   },
 
   logout: () => {
     removeToken();
-    set({ token: null, user: null, isAuthenticated: false });
+    set({ token: null, user: null, isAuthenticated: false, isInitialized: true });
   },
 
   setUser: (user) => {
-    set({ user });
+    set({ user, isInitialized: true });
+  },
+
+  finishInitialization: () => {
+    set({ isInitialized: true });
   },
 }));
