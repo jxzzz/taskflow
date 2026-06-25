@@ -5,6 +5,8 @@ import com.taskflow.dto.UserRegisterRequest;
 import com.taskflow.dto.UserResponse;
 import com.taskflow.dto.UserUpdateRequest;
 
+import java.util.List;
+
 public interface UserService {
 
     UserResponse register(UserRegisterRequest request);
@@ -12,6 +14,8 @@ public interface UserService {
     UserResponse getById(Long id);
 
     UserResponse getByUsername(String username);
+
+    List<UserResponse> search(String keyword);
 
     IPage<UserResponse> list(int page, int size);
 

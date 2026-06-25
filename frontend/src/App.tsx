@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, App as AntApp } from 'antd';
 import { RouterProvider } from 'react-router-dom';
@@ -73,6 +73,13 @@ function AppInner() {
   const colorScheme = useAppStore((s) => s.colorScheme);
   const language = useAppStore((s) => s.language);
   const csRgb = COLOR_SCHEMES[colorScheme].accentRgb;
+
+  // 禁用前端右键菜单
+  useEffect(() => {
+    const handler = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', handler);
+    return () => document.removeEventListener('contextmenu', handler);
+  }, []);
 
   // 页面刷新时恢复用户信息（有 token 但无 user → 调 /auth/me）
   useAuthInit();

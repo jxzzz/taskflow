@@ -12,6 +12,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "用户接口", description = "用户 CRUD")
 @RestController
 @RequestMapping("/api/v1/users")
@@ -19,6 +21,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
+    @Operation(summary = "搜索用户（按用户名模糊匹配，最多10条）")
+    @GetMapping("/search")
+    public ApiResponse<List<UserResponse>> search(
+            @Parameter(description = "搜索关键词") @RequestParam String q) {
+        return ApiResponse.success(userService.search(q));
+    }
 
     @Operation(summary = "获取用户列表")
     @GetMapping

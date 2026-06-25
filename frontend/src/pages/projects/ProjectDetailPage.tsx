@@ -38,6 +38,7 @@ import TaskListView from '@/pages/projects/TaskListView';
 import { useProject } from '@/hooks/useProjects';
 import { useCreateTaskList } from '@/hooks/useTaskLists';
 import { useCreateTask, useTaskDetail } from '@/hooks/useTasks';
+import ProjectSettingsModal from '@/pages/projects/ProjectSettingsModal';
 import { useKanbanDrag } from '@/pages/projects/useKanbanDrag';
 import { useTaskCreation } from '@/pages/projects/useTaskCreation';
 import { useKanbanShortcuts } from '@/pages/projects/useKanbanShortcuts';
@@ -75,6 +76,7 @@ export default function ProjectDetailPage() {
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const [taskCreateListId, setTaskCreateListId] = useState<number | undefined>();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const isMember = project?.isMember ?? true; // 旧后端未返回时默认允许操作
 
   const [focusMode, setFocusMode] = useState(false);
@@ -171,7 +173,12 @@ export default function ProjectDetailPage() {
               返回
             </Button>
             {isMember && (
-              <Button type="primary" icon={<EditOutlined />} style={{ borderRadius: 50 }}>
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                style={{ borderRadius: 50 }}
+                onClick={() => setSettingsOpen(true)}
+              >
                 编辑
               </Button>
             )}
@@ -450,29 +457,12 @@ export default function ProjectDetailPage() {
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
                     onPressEnter={handleAddList}
-                    style={{ marginBottom: 10, borderRadius: 'var(--radius-sm)' }}
+                    onBlur={() => {
+                      setAddingList(false);
+                      setNewListName('');
+                    }}
+                    style={{ borderRadius: 'var(--radius-sm)' }}
                   />
-                  <Space size={6}>
-                    <Button
-                      size="small"
-                      type="primary"
-                      onClick={handleAddList}
-                      loading={createList.isPending}
-                      style={{ borderRadius: 'var(--radius-xs)' }}
-                    >
-                      创建
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={() => {
-                        setAddingList(false);
-                        setNewListName('');
-                      }}
-                      style={{ borderRadius: 'var(--radius-xs)' }}
-                    >
-                      取消
-                    </Button>
-                  </Space>
                 </div>
               ) : (
                 <button
@@ -592,6 +582,15 @@ export default function ProjectDetailPage() {
           />
         )}
       </Drawer>
+
+      {/* Project settings modal */}
+      {project && (
+        <ProjectSettingsModal
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          projectId={project.id}
+        />
+      )}
 
       {/* Inline keyframes for add-list animations */}
       <style>{`

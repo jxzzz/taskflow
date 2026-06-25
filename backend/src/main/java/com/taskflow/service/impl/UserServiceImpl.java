@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -59,6 +61,15 @@ public class UserServiceImpl implements UserService {
             throw BusinessException.notFound("用户");
         }
         return toResponse(user);
+    }
+
+    @Override
+    public List<UserResponse> search(String keyword) {
+        List<User> users = userMapper.selectList(
+                new LambdaQueryWrapper<User>()
+                        .like(User::getUsername, keyword)
+                        .last("LIMIT 10"));
+        return users.stream().map(this::toResponse).toList();
     }
 
     @Override

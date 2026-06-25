@@ -20,4 +20,8 @@ export const userApi = {
   /** 删除用户（硬删除），DELETE /api/v1/users/{id} */
   delete: (id: number) =>
     client.delete<any, void>(`/users/${id}`),
+
+  /** 搜索用户，GET /api/v1/users/search?q=xxx */
+  search: (q: string) =>
+    client.get<any, UserInfo[]>('/users/search', { params: { q } }),
 };
