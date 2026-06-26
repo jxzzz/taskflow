@@ -1,262 +1,231 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import {
-  PointerSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  pointerWithin,
-  closestCenter,
-  defaultDropAnimationSideEffects,
-  type DragStartEvent,
-  type DragEndEvent,
-  type DragOverEvent,
-  type CollisionDetection,
-} from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
+import type { DragStart, DragUpdate, DropResult } from '@hello-pangea/dnd';
 import { useMoveTask } from '@/hooks/useTasks';
-import { computeSortOrders } from '@/hooks/useKanbanMutations';
+
 import { taskApi, taskListApi } from '@/api/tasks';
-import type { TaskCardBrief, TaskListSummary } from '@/types/task';
-import type { Project } from '@/types/project';
+import type { TaskListSummary } from '@/types/task';
 
 interface UseKanbanDragParams {
   projectId: number;
   lists: TaskListSummary[];
+  setLists: (lists: TaskListSummary[]) => void;
+  columnOrder: string[];
+  setColumnOrder: (order: string[]) => void;
   onDragStartClosesDrawer: () => void;
 }
 
-export function useKanbanDrag({ projectId, lists, onDragStartClosesDrawer }: UseKanbanDragParams) {
+// ---- ID helpers (shared convention with KanbanColumn / KanbanCard) ----
+
+export const COL_PREFIX = 'col-';
+export const CARD_PREFIX = 'card-';
+export const BOARD_DROPPABLE = 'board';
+export const LIST_DROPPABLE_PREFIX = 'list-';
+
+export function makeColId(listId: number): string {
+  return `${COL_PREFIX}${listId}`;
+}
+export function parseColId(id: string): number | null {
+  if (!id.startsWith(COL_PREFIX)) return null;
+  return Number(id.slice(COL_PREFIX.length));
+}
+export function makeCardId(taskId: number): string {
+  return `${CARD_PREFIX}${taskId}`;
+}
+export function parseCardId(id: string): number | null {
+  if (!id.startsWith(CARD_PREFIX)) return null;
+  return Number(id.slice(CARD_PREFIX.length));
+}
+export function parseListDroppableId(droppableId: string): number | null {
+  if (!droppableId.startsWith(LIST_DROPPABLE_PREFIX)) return null;
+  return Number(droppableId.slice(LIST_DROPPABLE_PREFIX.length));
+}
+
+export function useKanbanDrag({
+  projectId,
+  lists,
+  setLists,
+  columnOrder,
+  setColumnOrder,
+  onDragStartClosesDrawer,
+}: UseKanbanDragParams) {
   const queryClient = useQueryClient();
   const moveTask = useMoveTask();
-  const [activeTask, setActiveTask] = useState<TaskCardBrief | null>(null);
-  const previousCacheRef = useRef<Project | undefined>(undefined);
-  const sourceListIdRef = useRef<number | null>(null);
-  const optimisticListIdRef = useRef<number | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  // Refs track latest values — avoids stale closures in callbacks
+  const listsRef = useRef(lists);
+  listsRef.current = lists;
+  const columnOrderRef = useRef(columnOrder);
+  columnOrderRef.current = columnOrder;
 
-  const collisionDetection: CollisionDetection = (args) => {
-    const pointerCollisions = pointerWithin(args);
-    if (pointerCollisions.length > 0) return pointerCollisions;
-    return closestCenter(args);
-  };
+  // Pre-drag snapshot for rollback on cancel/error
+  const snapshotRef = useRef<{
+    lists: TaskListSummary[];
+    columnOrder: string[];
+  } | null>(null);
 
-  const dropAnimation = {
-    sideEffects: defaultDropAnimationSideEffects({
-      styles: {
-        active: {
-          transition: 'transform 250ms cubic-bezier(0.19, 1, 0.22, 1), opacity 200ms ease',
-        },
-      },
-    }),
-  };
-
+  // ---- onDragStart ----
   const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const { active } = event;
-      if (active.data.current?.type === 'card') {
-        setActiveTask(active.data.current.card as TaskCardBrief);
-        onDragStartClosesDrawer();
-        sourceListIdRef.current = active.data.current.listId as number;
-        optimisticListIdRef.current = active.data.current.listId as number;
-      }
-      previousCacheRef.current = queryClient.getQueryData<Project>(['projects', projectId]);
+    (_start: DragStart) => {
+      onDragStartClosesDrawer();
+      snapshotRef.current = {
+        lists: structuredClone(listsRef.current),
+        columnOrder: [...columnOrderRef.current],
+      };
     },
-    [queryClient, projectId, onDragStartClosesDrawer],
+    [onDragStartClosesDrawer],
   );
 
-  const handleDragOver = useCallback(
-    (event: DragOverEvent) => {
-      const { active, over } = event;
-      if (!over || active.data.current?.type !== 'card') return;
+  // ---- onDragUpdate (optimistic local updates) ----
+  const handleDragUpdate = useCallback(
+    (update: DragUpdate) => {
+      const { destination, source, type } = update;
+      if (!destination) return;
+      if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
-      const activeCardId = active.id as number;
-      let overListId: number;
-      if (over.data.current?.type === 'card') {
-        overListId = over.data.current.listId as number;
-      } else if (over.data.current?.type === 'column') {
-        overListId = (over.data.current.list as TaskListSummary).id;
-      } else {
+      if (type === 'COLUMN') {
+        // Column reorder — splice columnOrder array
+        const current = columnOrderRef.current;
+        const reordered = [...current];
+        const [removed] = reordered.splice(source.index, 1);
+        reordered.splice(destination.index, 0, removed);
+        setColumnOrder(reordered);
         return;
       }
 
-      const prevOptimisticListId = optimisticListIdRef.current;
-      if (prevOptimisticListId === overListId) return;
+      if (type === 'CARD') {
+        // Card move/reorder — splice task arrays within lists
+        const srcListId = parseListDroppableId(source.droppableId);
+        const dstListId = parseListDroppableId(destination.droppableId);
+        if (srcListId === null || dstListId === null) return;
 
-      queryClient.setQueryData<Project>(['projects', projectId], (old) => {
-        if (!old?.lists) return old;
-        const currentList = old.lists.find((l) => l.id === prevOptimisticListId);
-        const cardInCache = currentList?.tasks.find((t) => t.id === activeCardId);
-        if (!cardInCache) return old;
-        const targetList = old.lists.find((l) => l.id === overListId);
-        if (!targetList) return old;
+        const currentLists = listsRef.current;
+        const srcList = currentLists.find((l) => l.id === srcListId);
+        if (!srcList) return;
 
-        return {
-          ...old,
-          lists: old.lists.map((l) => {
-            if (l.id === prevOptimisticListId) {
-              const filtered = l.tasks.filter((t) => t.id !== activeCardId);
-              return { ...l, tasks: filtered, taskCount: filtered.length };
-            }
-            if (l.id === overListId) {
-              const deduped = l.tasks.filter((t) => t.id !== activeCardId);
-              deduped.push(cardInCache);
-              return { ...l, tasks: deduped, taskCount: deduped.length };
-            }
+        const srcTasks = [...srcList.tasks];
+        const [moved] = srcTasks.splice(source.index, 1);
+        if (!moved) return;
+
+        const newSrcList = { ...srcList, tasks: srcTasks, taskCount: srcTasks.length };
+
+        let newDstList: TaskListSummary;
+        if (srcListId === dstListId) {
+          // Reorder within same list — splice into the already-modified srcTasks
+          srcTasks.splice(destination.index, 0, moved);
+          newSrcList.tasks = srcTasks;
+          newSrcList.taskCount = srcTasks.length;
+          setLists(currentLists.map((l) => (l.id === srcListId ? newSrcList : l)));
+          return;
+        }
+
+        // Cross-list move
+        const dstList = currentLists.find((l) => l.id === dstListId);
+        if (!dstList) return;
+
+        const dstTasks = [...dstList.tasks];
+        dstTasks.splice(destination.index, 0, moved);
+        newDstList = { ...dstList, tasks: dstTasks, taskCount: dstTasks.length };
+
+        setLists(
+          currentLists.map((l) => {
+            if (l.id === srcListId) return newSrcList;
+            if (l.id === dstListId) return newDstList;
             return l;
           }),
-        };
-      });
-      optimisticListIdRef.current = overListId;
+        );
+      }
     },
-    [queryClient, projectId],
+    [setLists, setColumnOrder],
   );
 
+  // ---- onDragEnd (persist to server) ----
   const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      setActiveTask(null);
+    (result: DropResult) => {
+      const { source, destination, draggableId, type, reason } = result;
 
-      if (!over) {
-        if (previousCacheRef.current) {
-          queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
-        } else {
-          queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
+      // Cancel or dropped outside → full rollback
+      if (!destination || reason === 'CANCEL') {
+        if (snapshotRef.current) {
+          setLists(snapshotRef.current.lists);
+          setColumnOrder(snapshotRef.current.columnOrder);
         }
-        sourceListIdRef.current = null;
-        optimisticListIdRef.current = null;
         return;
       }
 
-      // Column reorder
-      if (active.data.current?.type === 'column') {
-        const oldIndex = lists.findIndex((l) => `list-${l.id}` === active.id);
-        const newIndex = lists.findIndex((l) => `list-${l.id}` === over.id);
-        if (oldIndex >= 0 && newIndex >= 0 && oldIndex !== newIndex) {
-          const items = computeSortOrders(lists, oldIndex, newIndex);
-          taskListApi
-            .reorder(projectId, items)
+      if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+
+      // ---- Column reorder ----
+      if (type === 'COLUMN') {
+        const currentColumnOrder = columnOrderRef.current;
+
+        // Derive sort orders from the CURRENT column order (already updated by handleDragUpdate).
+        // Not using computeSortOrders with source/dest indices because listsRef.current
+        // may be in a different order than what the indices reference.
+        const items = currentColumnOrder.map((colId, index) => ({
+          id: Number(colId.replace('list-', '')),
+          sortOrder: index * 1000,
+        }));
+        taskListApi
+          .reorder(projectId, items)
+          .catch(() => {
+            setColumnOrder(snapshotRef.current?.columnOrder ?? currentColumnOrder);
+            message.error('列排序失败');
+          })
+          .finally(() => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }));
+        return;
+      }
+
+      // ---- Card reorder / move ----
+      if (type === 'CARD') {
+        const cardId = parseCardId(draggableId);
+        if (cardId === null) return;
+
+        const srcListId = parseListDroppableId(source.droppableId);
+        const dstListId = parseListDroppableId(destination.droppableId);
+        if (srcListId === null || dstListId === null) return;
+
+        const currentLists = listsRef.current;
+
+        // Within-column reorder
+        if (srcListId === dstListId) {
+          const srcList = currentLists.find((l) => l.id === srcListId);
+          if (!srcList) return;
+
+          // Derive sort orders from the CURRENT task order (already updated by handleDragUpdate).
+          // Not using computeSortOrders with source/dest indices because tasks were already
+          // re-arranged optimistically and the indices no longer match the current array.
+          const items = srcList.tasks.map((task, index) => ({
+            id: task.id,
+            sortOrder: index * 1000,
+          }));
+          taskApi
+            .reorder(srcListId, items)
             .catch(() => {
-              if (previousCacheRef.current)
-                queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
-              message.error('列排序失败');
+              if (snapshotRef.current) setLists(snapshotRef.current.lists);
+              message.error('排序失败');
             })
             .finally(() => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }));
+          return;
         }
-        return;
-      }
 
-      // Card drag
-      if (active.data.current?.type !== 'card') return;
-
-      const activeCard = active.data.current.card as TaskCardBrief;
-      const sourceListId = sourceListIdRef.current ?? (active.data.current.listId as number);
-      sourceListIdRef.current = null;
-      optimisticListIdRef.current = null;
-
-      let targetListId: number;
-      if (over.data.current?.type === 'card') {
-        targetListId = over.data.current.listId as number;
-      } else if (over.data.current?.type === 'column') {
-        targetListId = (over.data.current.list as TaskListSummary).id;
-      } else {
-        if (previousCacheRef.current) {
-          queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
-        } else {
-          queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
-        }
-        return;
-      }
-
-      const targetList = lists.find((l) => l.id === targetListId);
-      let targetIndex = targetList?.tasks.length ?? 0;
-      if (over.data.current?.type === 'card') {
-        const idx = targetList?.tasks.findIndex((t) => t.id === over.id) ?? -1;
-        if (idx >= 0) targetIndex = idx;
-      }
-
-      if (sourceListId !== targetListId) {
+        // Cross-column move
         moveTask.mutate(
-          { id: activeCard.id, data: { targetListId, sortOrder: targetIndex * 1000 } },
+          {
+            id: cardId,
+            data: { targetListId: dstListId, sortOrder: destination.index * 1000 },
+          },
           {
             onError: () => {
-              if (previousCacheRef.current) {
-                queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
-              }
+              if (snapshotRef.current) setLists(snapshotRef.current.lists);
             },
           },
         );
-        return;
       }
-
-      // Within-column reorder
-      const sourceList = lists.find((l) => l.id === sourceListId);
-      if (!sourceList) return;
-      const oldIndex = sourceList.tasks.findIndex((t) => t.id === activeCard.id);
-      if (oldIndex < 0 || oldIndex === targetIndex) {
-        queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
-        return;
-      }
-
-      const items = computeSortOrders(sourceList.tasks, oldIndex, targetIndex);
-      queryClient.setQueryData<Project>(['projects', projectId], (old) => {
-        if (!old?.lists) return old;
-        return {
-          ...old,
-          lists: old.lists.map((l) => {
-            if (l.id === sourceListId) {
-              const reordered = [...l.tasks];
-              const [moved] = reordered.splice(oldIndex, 1);
-              reordered.splice(targetIndex, 0, moved);
-              return { ...l, tasks: reordered.map((t, i) => ({ ...t, sortOrder: i * 1000 })) };
-            }
-            return l;
-          }),
-        };
-      });
-
-      taskApi
-        .reorder(sourceListId, items)
-        .catch(() => {
-          if (previousCacheRef.current)
-            queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
-          message.error('排序失败');
-        })
-        .finally(() => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }));
     },
-    [lists, moveTask, queryClient, projectId],
+    [setLists, setColumnOrder, moveTask, queryClient, projectId],
   );
 
-  const handleDragCancel = useCallback(() => {
-    if (previousCacheRef.current) {
-      queryClient.setQueryData(['projects', projectId], previousCacheRef.current);
-    }
-    sourceListIdRef.current = null;
-    optimisticListIdRef.current = null;
-    setActiveTask(null);
-  }, [queryClient, projectId]);
-
-  // Cleanup refs on unmount
-  useEffect(() => {
-    return () => {
-      sourceListIdRef.current = null;
-      optimisticListIdRef.current = null;
-    };
-  }, []);
-
-  return {
-    activeTask,
-    sensors,
-    collisionDetection,
-    dropAnimation,
-    handleDragStart,
-    handleDragOver,
-    handleDragEnd,
-    handleDragCancel,
-  };
+  return { handleDragStart, handleDragUpdate, handleDragEnd };
 }

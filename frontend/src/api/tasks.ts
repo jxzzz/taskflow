@@ -13,7 +13,7 @@ import type { PaginatedResult } from '@/types/api';
 /** 任务列表 API */
 export const taskListApi = {
   /** 创建列表，POST /api/v1/projects/{projectId}/lists */
-  create: (projectId: number, data: { name: string }) =>
+  create: (projectId: number, data: { name: string; sortOrder?: number }) =>
     client.post<any, TaskListSummary>(`/projects/${projectId}/lists`, data),
 
   /** 获取看板下所有列表，GET /api/v1/projects/{projectId}/lists */

@@ -13,4 +13,7 @@ public class TaskListCreateRequest {
     @Size(max = 50, message = "列表名称不能超过50个字符")
     @Schema(description = "列表名称", example = "待办")
     private String name;
+
+    @Schema(description = "排序序号（前端传入，新建时默认为当前列表数量）", example = "0")
+    private Integer sortOrder;
 }

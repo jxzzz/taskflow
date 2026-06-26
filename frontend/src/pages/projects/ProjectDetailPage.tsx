@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   App,
@@ -25,15 +25,14 @@ import {
   GlobalOutlined,
   LockOutlined,
 } from '@ant-design/icons';
-import { DndContext, DragOverlay } from '@dnd-kit/core';
-import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import { BOARD_DROPPABLE } from '@/pages/projects/useKanbanDrag';
 import dayjs from 'dayjs';
 import PageHeader from '@/components/common/PageHeader';
 import EmptyKanban from '@/components/common/EmptyKanban';
 import TaskCreateModal from '@/components/common/TaskCreateModal';
 import TaskDetailContent from '@/pages/projects/TaskDetailContent';
 import KanbanColumn from '@/pages/projects/KanbanColumn';
-import KanbanCard from '@/pages/projects/KanbanCard';
 import TaskListView from '@/pages/projects/TaskListView';
 import { useProject } from '@/hooks/useProjects';
 import { useCreateTaskList } from '@/hooks/useTaskLists';
@@ -44,7 +43,7 @@ import { useTaskCreation } from '@/pages/projects/useTaskCreation';
 import { useKanbanShortcuts } from '@/pages/projects/useKanbanShortcuts';
 import { useQueryClient } from '@tanstack/react-query';
 import { PROJECT_STATUS_CONFIG } from '@/types/project';
-import type { TaskCardBrief } from '@/types/task';
+import type { TaskListSummary } from '@/types/task';
 
 const { Text, Title } = Typography;
 
@@ -58,14 +57,17 @@ export default function ProjectDetailPage() {
   const { data: project, isLoading } = useProject(projectId);
   const createList = useCreateTaskList(projectId);
   const createTask = useCreateTask();
-  const lists = project?.lists || [];
-  const listCount = lists.length;
-
+  const [lists, setLists] = useState(project?.lists || []);
   // ---- UI state ----
   const [newListName, setNewListName] = useState('');
   const [addingList, setAddingList] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
-  const { data: taskDetail, isFetching: taskLoading, error: taskError } = useTaskDetail(selectedTaskId);
+
+  const {
+    data: taskDetail,
+    isFetching: taskLoading,
+    error: taskError,
+  } = useTaskDetail(selectedTaskId);
   const { message } = App.useApp();
 
   // 卡片详情加载失败时弹出错误提示
@@ -74,6 +76,13 @@ export default function ProjectDetailPage() {
       message.error((taskError as Error)?.message || '加载任务失败');
     }
   }, [taskError, message]);
+
+  useEffect(() => {
+    if (project?.lists) {
+      setLists(project.lists);
+    }
+  }, [project?.lists]);
+
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const [taskCreateListId, setTaskCreateListId] = useState<number | undefined>();
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
@@ -82,19 +91,42 @@ export default function ProjectDetailPage() {
 
   const [focusMode, setFocusMode] = useState(false);
 
+  // ---- Column order (local state drives sortable) ----
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+
+  // Sync from server when the set of list IDs changes (init / add / remove).
+  // Sorting the IDs means pure reorder does NOT trigger a resync, so our
+  // local reorder survives the refetch that follows the API call.
+  const listIdsKey = lists
+    .map((l) => l.id)
+    .sort((a, b) => a - b)
+    .join(',');
+  useEffect(() => {
+    setColumnOrder(lists.map((l) => `list-${l.id}`));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listIdsKey]);
+
+  // Derive ordered lists from columnOrder.
+  // Uses `lists` (local state, may include optimistic updates) rather than
+  // `snapshot.current` (server baseline) so that handleDragUpdate's optimistic
+  // reorder is immediately visible during drag.  Without this, the card would
+  // snap back on drop because rbd removes the drag transform, but the React
+  // state hadn't changed — the visual movement was purely rbd's CSS transform.
+  const orderedLists = useMemo(() => {
+    if (columnOrder.length === 0) return lists;
+    const map = new Map(lists.map((l) => [l.id, l] as const));
+    return columnOrder
+      .map((key) => map.get(Number(key.replace('list-', ''))))
+      .filter((l): l is TaskListSummary => !!l);
+  }, [lists, columnOrder]);
+
   // ---- Drag & Drop ----
-  const {
-    activeTask,
-    sensors,
-    collisionDetection,
-    dropAnimation,
-    handleDragStart,
-    handleDragOver,
-    handleDragEnd,
-    handleDragCancel,
-  } = useKanbanDrag({
+  const { handleDragStart, handleDragUpdate, handleDragEnd } = useKanbanDrag({
     projectId,
     lists,
+    setLists,
+    columnOrder,
+    setColumnOrder,
     onDragStartClosesDrawer: () => setSelectedTaskId(null),
   });
 
@@ -111,7 +143,7 @@ export default function ProjectDetailPage() {
 
   // ---- Keyboard shortcuts ----
   useKanbanShortcuts({
-    listCount,
+    listCount: lists.length,
     addingList,
     onBootstrap: handleBootstrap,
   });
@@ -119,12 +151,15 @@ export default function ProjectDetailPage() {
   // ---- Add list ----
   const handleAddList = () => {
     if (!newListName.trim()) return;
-    createList.mutate(newListName.trim(), {
-      onSuccess: () => {
-        setNewListName('');
-        setAddingList(false);
+    createList.mutate(
+      { name: newListName.trim(), sortOrder: lists.length },
+      {
+        onSuccess: () => {
+          setNewListName('');
+          setAddingList(false);
+        },
       },
-    });
+    );
   };
 
   // ---- Early returns ----
@@ -152,7 +187,7 @@ export default function ProjectDetailPage() {
       </div>
     );
   }
-
+  console.log('ProjectDetailPage render', { lists, orderedLists, columnOrder });
   // ---- Main render ----
   return (
     <div
@@ -224,7 +259,10 @@ export default function ProjectDetailPage() {
           )}
           {project.isPublic ? '公开' : '私有'}
         </Tag>
-        <Tag color={(PROJECT_STATUS_CONFIG[project.status] || PROJECT_STATUS_CONFIG.active).color} style={{ margin: 0 }}>
+        <Tag
+          color={(PROJECT_STATUS_CONFIG[project.status] || PROJECT_STATUS_CONFIG.active).color}
+          style={{ margin: 0 }}
+        >
           {(PROJECT_STATUS_CONFIG[project.status] || PROJECT_STATUS_CONFIG.active).label}
         </Tag>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
@@ -237,7 +275,9 @@ export default function ProjectDetailPage() {
         <Text style={{ fontSize: 13, color: 'var(--color-ink-tertiary)' }}>
           {project.startDate || project.endDate
             ? `${project.startDate ? dayjs(project.startDate).format('YYYY/MM/DD') : '?'} — ${project.endDate ? dayjs(project.endDate).format('YYYY/MM/DD') : '?'}`
-            : project.createTime ? dayjs(project.createTime).format('YYYY-MM-DD') : '—'}
+            : project.createTime
+              ? dayjs(project.createTime).format('YYYY-MM-DD')
+              : '—'}
         </Text>
         {project.projectUrl && (
           <>
@@ -264,7 +304,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* View controls — toolbar row */}
-      {listCount > 0 && (
+      {lists.length > 0 && (
         <div
           style={{
             display: 'flex',
@@ -355,207 +395,161 @@ export default function ProjectDetailPage() {
       )}
 
       {/* ====== Kanban View ====== */}
+
       {viewMode === 'kanban' && (
-        <DndContext
-          sensors={isMember ? sensors : []}
-          collisionDetection={collisionDetection}
+        <DragDropContext
           onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
+          onDragUpdate={handleDragUpdate}
           onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
-          accessibility={{
-            announcements: {
-              onDragStart({ active }) {
-                const card = active.data.current?.card as TaskCardBrief | undefined;
-                return card ? `已拾取卡片 "${card.title}"` : '已拾取';
-              },
-              onDragOver({ over }) {
-                if (!over) return '无可放置目标';
-                return `移动到位置 ${(over.data.current?.sortable?.index ?? 0) + 1}`;
-              },
-              onDragEnd({ over }) {
-                if (!over) return '已放回原位';
-                return `已放置到位置 ${(over.data.current?.sortable?.index ?? 0) + 1}`;
-              },
-              onDragCancel() {
-                return '拖拽已取消';
-              },
-            },
-          }}
         >
-          <div
-            style={{
-              flex: 1,
-              display: 'flex',
-              gap: 14,
-              overflowX: 'auto',
-              overflowY: 'hidden',
-              paddingBottom: 16,
-              alignItems: 'stretch',
-              minHeight: 0,
-            }}
-          >
-            {/* Columns: draggable when not in focus, static in focus */}
-            {!focusMode ? (
-              <SortableContext
-                items={lists.map((l) => `list-${l.id}`)}
-                strategy={horizontalListSortingStrategy}
+          <Droppable droppableId={BOARD_DROPPABLE} type="COLUMN" direction="horizontal">
+            {(provided) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  gap: 14,
+                  overflowX: 'auto',
+                  overflowY: 'hidden',
+                  paddingBottom: 16,
+                  alignItems: orderedLists?.length ? 'stretch' : 'flex-start',
+                  minHeight: 0,
+                }}
               >
-                {lists.map((list) => (
+                {orderedLists?.map((list, ci) => (
                   <KanbanColumn
                     key={list.id}
                     list={list}
                     projectId={projectId}
-                    allLists={lists}
-                    onCardMoved={() => {}}
+                    columnIndex={ci}
+                    allLists={orderedLists}
+                    isMember={isMember}
+                    focusMode={focusMode}
+                    onCardMoved={() => {
+                      console.log(`Card moved in list ${list.id}`);
+                    }}
                     onCardClick={(cardId) => setSelectedTaskId(cardId)}
                     onTaskDeleted={(taskId) => {
                       if (taskId === selectedTaskId) setSelectedTaskId(null);
                     }}
-                    onAddTask={isMember ? (listId) => {
-                      setTaskCreateListId(listId);
-                      setTaskCreateOpen(true);
-                    } : undefined}
+                    onAddTask={
+                      isMember
+                        ? (listId) => {
+                            setTaskCreateListId(listId);
+                            setTaskCreateOpen(true);
+                          }
+                        : undefined
+                    }
                   />
                 ))}
-              </SortableContext>
-            ) : (
-              lists.map((list) => (
-                <KanbanColumn
-                  key={list.id}
-                  list={list}
-                  projectId={projectId}
-                  allLists={lists}
-                  readOnly={!isMember}
-                  onCardMoved={() => {}}
-                  onCardClick={(cardId) => setSelectedTaskId(cardId)}
-                  onTaskDeleted={(taskId) => {
-                    if (taskId === selectedTaskId) setSelectedTaskId(null);
-                  }}
-                  onAddTask={isMember ? (listId) => {
-                    setTaskCreateListId(listId);
-                    setTaskCreateOpen(true);
-                  } : undefined}
-                />
-              ))
+                {provided.placeholder}
+
+                {/* Add list — hidden in focus mode or view-only */}
+                {!focusMode &&
+                  isMember &&
+                  (addingList ? (
+                    <div
+                      style={{
+                        flex: '1 1 0',
+                        minWidth: 260,
+                        maxWidth: 380,
+                        background: 'var(--color-bg-elevated)',
+                        borderRadius: 'var(--radius-lg)',
+                        border: '2px solid var(--color-lavender-soft)',
+                        padding: 16,
+                        boxShadow: 'var(--shadow-card)',
+                        animation: 'addListExpand 0.25s cubic-bezier(0.19, 1, 0.22, 1)',
+                      }}
+                    >
+                      <Input
+                        autoFocus
+                        size="small"
+                        placeholder="输入列表名称，回车创建"
+                        value={newListName}
+                        onChange={(e) => setNewListName(e.target.value)}
+                        onPressEnter={handleAddList}
+                        onBlur={() => {
+                          setAddingList(false);
+                          setNewListName('');
+                        }}
+                        style={{ borderRadius: 'var(--radius-sm)' }}
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setAddingList(true)}
+                      style={{
+                        flex: '1 1 0',
+                        minWidth: 160,
+                        maxWidth: 380,
+                        height: '100%',
+                        minHeight: 120,
+                        borderRadius: 'var(--radius-lg)',
+                        border: '2px dashed rgba(155, 151, 212, 0.18)',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8,
+                        transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
+                        animation: 'addListFadeIn 0.4s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.4)';
+                        e.currentTarget.style.background = 'rgba(155, 151, 212, 0.03)';
+                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(155, 151, 212, 0.05)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.18)';
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          background: 'rgba(155, 151, 212, 0.10)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#9b97d4',
+                          fontSize: 16,
+                          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        }}
+                      >
+                        <PlusOutlined />
+                      </span>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          color: 'rgba(155, 151, 212, 0.5)',
+                          fontWeight: 500,
+                          fontFamily: "'DM Sans', sans-serif",
+                        }}
+                      >
+                        新建列表
+                      </Text>
+                    </button>
+                  ))}
+
+                {/* Empty state */}
+                {lists.length === 0 && !addingList && <EmptyKanban onBootstrap={handleBootstrap} />}
+              </div>
             )}
-
-            {/* Add list — hidden in focus mode or view-only */}
-            {!focusMode && isMember &&
-              (addingList ? (
-                <div
-                  style={{
-                    flex: '1 1 0',
-                    minWidth: 260,
-                    maxWidth: 380,
-                    background: 'var(--color-bg-elevated)',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '2px solid var(--color-lavender-soft)',
-                    padding: 16,
-                    boxShadow: 'var(--shadow-card)',
-                    animation: 'addListExpand 0.25s cubic-bezier(0.19, 1, 0.22, 1)',
-                  }}
-                >
-                  <Input
-                    autoFocus
-                    size="small"
-                    placeholder="输入列表名称，回车创建"
-                    value={newListName}
-                    onChange={(e) => setNewListName(e.target.value)}
-                    onPressEnter={handleAddList}
-                    onBlur={() => {
-                      setAddingList(false);
-                      setNewListName('');
-                    }}
-                    style={{ borderRadius: 'var(--radius-sm)' }}
-                  />
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setAddingList(true)}
-                  style={{
-                    flex: '1 1 0',
-                    minWidth: 160,
-                    maxWidth: 380,
-                    height: '100%',
-                    minHeight: 120,
-                    borderRadius: 'var(--radius-lg)',
-                    border: '2px dashed rgba(155, 151, 212, 0.18)',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
-                    animation: 'addListFadeIn 0.4s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.4)';
-                    e.currentTarget.style.background = 'rgba(155, 151, 212, 0.03)';
-                    e.currentTarget.style.boxShadow = '0 0 0 4px rgba(155, 151, 212, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.18)';
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      background: 'rgba(155, 151, 212, 0.10)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#9b97d4',
-                      fontSize: 16,
-                      transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    }}
-                  >
-                    <PlusOutlined />
-                  </span>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      color: 'rgba(155, 151, 212, 0.5)',
-                      fontWeight: 500,
-                      fontFamily: "'DM Sans', sans-serif",
-                    }}
-                  >
-                    新建列表
-                  </Text>
-                </button>
-              ))}
-
-            {/* Empty state */}
-            {lists.length === 0 && !addingList && <EmptyKanban onBootstrap={handleBootstrap} />}
-          </div>
-
-          {/* Drag overlay */}
-          <DragOverlay dropAnimation={dropAnimation} zIndex={1000}>
-            {activeTask ? (
-              <KanbanCard
-                card={activeTask}
-                listId={0}
-                targetLists={[]}
-                onClick={() => {}}
-                onDelete={() => {}}
-                onMove={() => {}}
-                isOverlay
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+          </Droppable>
+        </DragDropContext>
       )}
 
       {/* ====== List View ====== */}
       {viewMode === 'list' &&
-        (listCount > 0 ? (
+        (lists.length > 0 ? (
           <TaskListView lists={lists} onTaskClick={(taskId) => setSelectedTaskId(taskId)} />
         ) : (
           <EmptyKanban onBootstrap={handleBootstrap} />

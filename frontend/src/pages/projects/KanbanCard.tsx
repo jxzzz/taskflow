@@ -5,8 +5,6 @@ import {
   ClockCircleOutlined,
   CheckSquareOutlined,
 } from '@ant-design/icons';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import dayjs from 'dayjs';
 import type { TaskCardBrief, TaskListSummary } from '@/types/task';
 
@@ -25,33 +23,29 @@ export const PRIORITY_LABELS: Record<number, string> = {
 
 interface KanbanCardProps {
   card: TaskCardBrief;
+  index: number;
   listId: number;
   targetLists: TaskListSummary[];
   onClick: () => void;
   onDelete: () => void;
   onMove: (targetListId: number) => void;
-  /** When true, renders as a drag overlay (elevated, non-interactive) */
-  isOverlay?: boolean;
+  /** Dragging state from parent Draggable snapshot */
+  isDragging?: boolean;
   /** When true, hides delete/move action buttons for non-member viewers */
   readOnly?: boolean;
 }
 
 export default function KanbanCard({
   card,
-  listId,
+  index: _index,
+  listId: _listId,
   targetLists,
   onClick,
   onDelete,
   onMove,
-  isOverlay = false,
+  isDragging = false,
   readOnly = false,
 }: KanbanCardProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: card.id,
-    data: { type: 'card' as const, card, listId },
-    disabled: isOverlay,
-  });
-
   const isOverdue = card.isOverdue ?? (card.dueDate && dayjs(card.dueDate).isBefore(dayjs()));
   const priorityColor = PRIORITY_COLORS[card.priority] || PRIORITY_COLORS[0];
   const hasCover = !!card.coverColor;
@@ -61,43 +55,31 @@ export default function KanbanCard({
   const checklistPct = hasChecklist ? Math.round((completedCount / checklistCount) * 100) : 0;
 
   const style: React.CSSProperties = {
-    background: 'var(--color-bg-elevated)',
+    background: 'linear-gradient(180deg, #ffffff 0%, #fafcfa 100%)',
     borderRadius: 'var(--radius-sm)',
-    boxShadow: isOverlay
-      ? 'var(--shadow-elevated)'
-      : isDragging
-        ? 'var(--shadow-sm)'
-        : 'var(--shadow-xs)',
-    border: '1px solid var(--color-border-subtle)',
-    cursor: isOverlay ? 'grabbing' : isDragging ? 'grabbing' : 'grab',
-    transition: transition ?? 'box-shadow var(--duration-fast) var(--ease-out-expo)',
-    opacity: isDragging ? 0.4 : isOverlay ? 0.95 : 1,
-    transform: CSS.Transform.toString(transform),
-    pointerEvents: isOverlay ? 'none' : 'auto',
-    position: 'relative',
-    touchAction: 'none',
-    overflow: 'hidden',
+    minHeight: 100,
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: isDragging ? 'var(--shadow-elevated)' : 'var(--shadow-xs)',
+    border: '1px solid rgba(155, 188, 158, 0.25)',
+    cursor: isDragging ? 'grabbing' : 'grab',
+    opacity: isDragging ? 0.85 : 1,
   };
 
   return (
     <div
-      ref={setNodeRef}
       className="kanban-card"
       style={style}
-      {...attributes}
-      {...listeners}
-      onClick={isOverlay ? undefined : isDragging ? undefined : onClick}
+      onClick={isDragging ? undefined : onClick}
       onMouseEnter={
-        isOverlay
+        isDragging
           ? undefined
-          : isDragging
-            ? undefined
-            : (e) => {
-                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-              }
+          : (e) => {
+              e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+            }
       }
       onMouseLeave={
-        isOverlay
+        isDragging
           ? undefined
           : (e) => {
               e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
@@ -106,8 +88,7 @@ export default function KanbanCard({
     >
       {/* Cover color strip */}
       {hasCover && <div style={{ height: 3, background: card.coverColor, flexShrink: 0 }} />}
-
-      <div style={{ padding: '12px 14px' }}>
+      <div style={{ padding: '16px 14px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Title */}
         <div
           style={{
@@ -195,6 +176,7 @@ export default function KanbanCard({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 6,
+            marginTop: 'auto',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
@@ -237,7 +219,7 @@ export default function KanbanCard({
           </div>
 
           {/* Action buttons — only on hover */}
-          {!isOverlay && !readOnly && (
+          {!readOnly && (
             <Space
               size={0}
               onClick={(e) => e.stopPropagation()}

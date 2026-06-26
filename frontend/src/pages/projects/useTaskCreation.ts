@@ -7,7 +7,7 @@ interface UseTaskCreationParams {
   lists: TaskListSummary[];
   projectId: number;
   taskCreateListId: number | undefined;
-  createList: { mutate: (name: string, opts?: any) => void; isPending: boolean };
+  createList: { mutate: (vars: { name: string; sortOrder: number }, opts?: any) => void; isPending: boolean };
   createTask: { mutate: (args: { listId: number; data: CreateTaskRequest }, opts?: any) => void };
   queryClient: { invalidateQueries: (args: any) => void };
   onQuickAddClose?: () => void;
@@ -30,7 +30,7 @@ export function useTaskCreation({
     (data: { title: string; dueDate?: string; priority?: number }) => {
       const targetListId = lists[0]?.id;
       if (!targetListId) {
-        createList.mutate('To Do', {
+        createList.mutate({ name: 'To Do', sortOrder: 0 }, {
           onSuccess: (newList: any) => {
             const listId = newList?.id;
             if (listId) {
@@ -55,7 +55,7 @@ export function useTaskCreation({
     (data: { title: string; content?: string; priority?: number; dueDate?: string; checklistItems?: string[] }) => {
       const targetListId = taskCreateListId || lists[0]?.id;
       if (!targetListId) {
-        createList.mutate('To Do', {
+        createList.mutate({ name: 'To Do', sortOrder: 0 }, {
           onSuccess: (newList: any) => {
             const listId = newList?.id;
             if (listId) {
@@ -122,7 +122,7 @@ export function useTaskCreation({
 
     try {
       const lists = await Promise.all(
-        listNames.map((name) => taskListApi.create(projectId, { name })),
+        listNames.map((name, i) => taskListApi.create(projectId, { name, sortOrder: i })),
       );
       await Promise.all(
         lists.map((list, i) =>

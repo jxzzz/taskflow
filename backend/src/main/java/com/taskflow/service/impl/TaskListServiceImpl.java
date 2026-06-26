@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,15 +37,24 @@ public class TaskListServiceImpl implements TaskListService {
     public TaskListSummary create(Long projectId, TaskListCreateRequest request, Long currentUserId) {
         checkMember(projectId, currentUserId);
 
-        // 自动计算 sortOrder = 当前最大 + 1
-        Long maxSort = taskListMapper.selectCount(
-                new LambdaQueryWrapper<TaskList>()
-                        .eq(TaskList::getProjectId, projectId));
+        // 优先使用前端传的 sortOrder，否则自动计算 = 当前最大 + 1
+        int sortOrder;
+        if (request.getSortOrder() != null) {
+            sortOrder = request.getSortOrder();
+        } else {
+            TaskList last = taskListMapper.selectOne(
+                    new LambdaQueryWrapper<TaskList>()
+                            .select(TaskList::getSortOrder)
+                            .eq(TaskList::getProjectId, projectId)
+                            .orderByDesc(TaskList::getSortOrder)
+                            .last("LIMIT 1"));
+            sortOrder = (last != null) ? last.getSortOrder() + 1 : 0;
+        }
 
         TaskList list = TaskList.builder()
                 .projectId(projectId)
                 .name(request.getName())
-                .sortOrder(maxSort.intValue())
+                .sortOrder(sortOrder)
                 .build();
         taskListMapper.insert(list);
 

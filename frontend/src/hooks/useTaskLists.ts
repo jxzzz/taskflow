@@ -8,7 +8,8 @@ export function useCreateTaskList(projectId: number) {
   const { message } = App.useApp();
 
   return useMutation({
-    mutationFn: (name: string) => taskListApi.create(projectId, { name }),
+    mutationFn: ({ name, sortOrder }: { name: string; sortOrder: number }) =>
+      taskListApi.create(projectId, { name, sortOrder }),
     onSuccess: () => {
       message.success('列表已创建');
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
