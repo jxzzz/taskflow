@@ -7,7 +7,7 @@ import { useRef, useEffect } from 'react';
  * Usage: useWhyDidYouUpdate('ComponentName', props);
  */
 export function useWhyDidYouUpdate(name: string, props: Record<string, unknown>) {
-  const prev = useRef<Record<string, unknown>>();
+  const prev = useRef<Record<string, unknown>>(null);
 
   useEffect(() => {
     if (import.meta.env.PROD) return;

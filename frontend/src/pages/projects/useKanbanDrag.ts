@@ -36,7 +36,7 @@ function parseCardId(id: string): number | null {
 }
 function parseListDroppableId(droppableId: string): number | null {
   if (!droppableId.startsWith(LIST_DROPPABLE_PREFIX)) return null;
-  return Number(id.slice(LIST_DROPPABLE_PREFIX.length));
+  return Number(droppableId.slice(LIST_DROPPABLE_PREFIX.length));
 }
 
 export function useKanbanDrag({
@@ -132,11 +132,7 @@ export function useKanbanDrag({
           const originalSrcList = snapshot.lists.find((l) => l.id === srcListId);
           if (!originalSrcList) return;
 
-          const items = computeSortOrders(
-            originalSrcList.tasks,
-            source.index,
-            destination.index,
-          );
+          const items = computeSortOrders(originalSrcList.tasks, source.index, destination.index);
 
           // Optimistic update
           const reordered = [...originalSrcList.tasks];
@@ -144,9 +140,7 @@ export function useKanbanDrag({
           reordered.splice(destination.index, 0, moved);
           setLists(
             snapshot.lists.map((l) =>
-              l.id === srcListId
-                ? { ...l, tasks: reordered, taskCount: reordered.length }
-                : l,
+              l.id === srcListId ? { ...l, tasks: reordered, taskCount: reordered.length } : l,
             ),
           );
 

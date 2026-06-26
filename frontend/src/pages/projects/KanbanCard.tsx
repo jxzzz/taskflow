@@ -1,11 +1,7 @@
 import { Space, Button, Popconfirm } from 'antd';
-import {
-  DeleteOutlined,
-  ClockCircleOutlined,
-  CheckSquareOutlined,
-} from '@ant-design/icons';
+import { DeleteOutlined, ClockCircleOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import type { TaskCardBrief, TaskListSummary } from '@/types/task';
+import type { TaskCardBrief } from '@/types/task';
 
 /** 优先级颜色映射 */
 const PRIORITY_COLORS: Record<number, string> = {
@@ -39,7 +35,6 @@ export default function KanbanCard({
   listId: _listId,
   onClick,
   onDelete,
-  onMove,
   isDragging = false,
   readOnly = false,
 }: KanbanCardProps) {
