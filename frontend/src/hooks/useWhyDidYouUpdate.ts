@@ -10,6 +10,7 @@ export function useWhyDidYouUpdate(name: string, props: Record<string, unknown>)
   const prev = useRef<Record<string, unknown>>();
 
   useEffect(() => {
+    if (import.meta.env.PROD) return;
     if (prev.current) {
       const allKeys = Object.keys({ ...prev.current, ...props });
       const changed = allKeys.filter((k) => prev.current![k] !== props[k]);

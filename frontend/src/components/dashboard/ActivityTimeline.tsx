@@ -2,12 +2,10 @@ import { Timeline, Tag, Skeleton, Empty, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import 'dayjs/locale/zh-cn';
 import type { ActivityLogEntry } from '@/types/activity';
 import { ACTIVITY_ACTION_CONFIG } from '@/types/activity';
 
 dayjs.extend(relativeTime);
-dayjs.locale('zh-cn');
 
 const { Text } = Typography;
 
@@ -101,14 +99,6 @@ export default function ActivityTimeline({
         >
           最近动态
         </Typography.Title>
-        {(activities?.length ?? 0) > limit && (
-          <Link
-            to="/activities"
-            style={{ fontSize: 13, color: 'var(--color-ink-tertiary)' }}
-          >
-            查看全部 →
-          </Link>
-        )}
       </div>
 
       <div

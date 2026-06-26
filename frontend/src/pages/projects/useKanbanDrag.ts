@@ -19,28 +19,24 @@ interface UseKanbanDragParams {
 
 // ---- ID helpers (shared convention with KanbanColumn / KanbanCard) ----
 
-export const COL_PREFIX = 'col-';
-export const CARD_PREFIX = 'card-';
+const COL_PREFIX = 'col-';
+const CARD_PREFIX = 'card-';
 export const BOARD_DROPPABLE = 'board';
-export const LIST_DROPPABLE_PREFIX = 'list-';
+const LIST_DROPPABLE_PREFIX = 'list-';
 
 export function makeColId(listId: number): string {
   return `${COL_PREFIX}${listId}`;
 }
-export function parseColId(id: string): number | null {
-  if (!id.startsWith(COL_PREFIX)) return null;
-  return Number(id.slice(COL_PREFIX.length));
-}
 export function makeCardId(taskId: number): string {
   return `${CARD_PREFIX}${taskId}`;
 }
-export function parseCardId(id: string): number | null {
+function parseCardId(id: string): number | null {
   if (!id.startsWith(CARD_PREFIX)) return null;
   return Number(id.slice(CARD_PREFIX.length));
 }
-export function parseListDroppableId(droppableId: string): number | null {
+function parseListDroppableId(droppableId: string): number | null {
   if (!droppableId.startsWith(LIST_DROPPABLE_PREFIX)) return null;
-  return Number(droppableId.slice(LIST_DROPPABLE_PREFIX.length));
+  return Number(id.slice(LIST_DROPPABLE_PREFIX.length));
 }
 
 export function useKanbanDrag({

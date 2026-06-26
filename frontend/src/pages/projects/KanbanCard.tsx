@@ -1,6 +1,5 @@
-import { Space, Button, Popconfirm, Popover, Select } from 'antd';
+import { Space, Button, Popconfirm } from 'antd';
 import {
-  SwapOutlined,
   DeleteOutlined,
   ClockCircleOutlined,
   CheckSquareOutlined,
@@ -9,13 +8,13 @@ import dayjs from 'dayjs';
 import type { TaskCardBrief, TaskListSummary } from '@/types/task';
 
 /** 优先级颜色映射 */
-export const PRIORITY_COLORS: Record<number, string> = {
+const PRIORITY_COLORS: Record<number, string> = {
   0: 'var(--color-ink-disabled)',
   1: 'var(--color-butter)',
   2: 'var(--color-coral)',
 };
 
-export const PRIORITY_LABELS: Record<number, string> = {
+const PRIORITY_LABELS: Record<number, string> = {
   0: '普通',
   1: '紧急',
   2: '非常紧急',

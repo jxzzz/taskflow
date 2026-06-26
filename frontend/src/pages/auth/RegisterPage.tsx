@@ -50,7 +50,7 @@ export default function RegisterPage() {
 
       <div style={{ textAlign: 'center', marginTop: 8 }}>
         <Text style={{ fontSize: 13.5, color: 'rgba(43,40,37,0.45)' }}>
-          已有账号？<Link to="/auth/register" style={{ fontWeight: 500 }}>立即登录</Link>
+          已有账号？<Link to="/auth/login" style={{ fontWeight: 500 }}>立即登录</Link>
         </Text>
       </div>
     </div>

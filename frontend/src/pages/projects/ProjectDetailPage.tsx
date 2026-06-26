@@ -427,9 +427,7 @@ export default function ProjectDetailPage() {
                     columnIndex={ci}
                     isMember={isMember}
                     focusMode={focusMode}
-                    onCardMoved={() => {
-                      console.log(`Card moved in list ${list.id}`);
-                    }}
+                    onCardMoved={() => {}}
                     onCardClick={(cardId) => setSelectedTaskId(cardId)}
                     onTaskDeleted={(taskId) => {
                       if (taskId === selectedTaskId) setSelectedTaskId(null);

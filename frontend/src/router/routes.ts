@@ -5,7 +5,6 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   PROJECTS: '/projects',
   PROJECT_DETAIL: '/projects/:id',
-  TASK_BOARD: '/projects/:id/tasks',
   USERS: '/users',
   SETTINGS: '/settings',
 } as const;
