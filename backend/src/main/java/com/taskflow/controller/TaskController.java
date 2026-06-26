@@ -83,12 +83,14 @@ public class TaskController {
     }
 
     @Operation(summary = "同列表内卡片排序")
-    @PutMapping("/api/v1/lists/{listId}/tasks/reorder")
+    @PutMapping("/api/v1/projects/{projectId}/lists/{listId}/tasks/reorder")
     public ApiResponse<Void> reorder(
+            @Parameter(description = "项目ID") @PathVariable Long projectId,
             @Parameter(description = "列表ID") @PathVariable Long listId,
             @Valid @RequestBody List<ReorderItem> items) {
+
         Long currentUserId = getCurrentUserId();
-        taskService.reorder(listId, items, currentUserId);
+        taskService.reorder(projectId, listId, items, currentUserId);
         return ApiResponse.success("排序成功", null);
     }
 

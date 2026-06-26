@@ -44,6 +44,7 @@ import { useKanbanShortcuts } from '@/pages/projects/useKanbanShortcuts';
 import { useQueryClient } from '@tanstack/react-query';
 import { PROJECT_STATUS_CONFIG } from '@/types/project';
 import type { TaskListSummary } from '@/types/task';
+import { useWhyDidYouUpdate } from '@/hooks/useWhyDidYouUpdate';
 
 const { Text, Title } = Typography;
 
@@ -119,6 +120,7 @@ export default function ProjectDetailPage() {
       .map((key) => map.get(Number(key.replace('list-', ''))))
       .filter((l): l is TaskListSummary => !!l);
   }, [lists, columnOrder]);
+  useWhyDidYouUpdate('ProjectDetailPage', { lists } as Record<string, unknown>);
 
   // ---- Drag & Drop ----
   const { handleDragStart, handleDragUpdate, handleDragEnd } = useKanbanDrag({
@@ -187,7 +189,6 @@ export default function ProjectDetailPage() {
       </div>
     );
   }
-  console.log('ProjectDetailPage render', { lists, orderedLists, columnOrder });
   // ---- Main render ----
   return (
     <div
@@ -424,7 +425,6 @@ export default function ProjectDetailPage() {
                     list={list}
                     projectId={projectId}
                     columnIndex={ci}
-                    allLists={orderedLists}
                     isMember={isMember}
                     focusMode={focusMode}
                     onCardMoved={() => {

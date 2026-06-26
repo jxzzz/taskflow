@@ -17,8 +17,7 @@ export const taskListApi = {
     client.post<any, TaskListSummary>(`/projects/${projectId}/lists`, data),
 
   /** 获取看板下所有列表，GET /api/v1/projects/{projectId}/lists */
-  list: (projectId: number) =>
-    client.get<any, TaskListSummary[]>(`/projects/${projectId}/lists`),
+  list: (projectId: number) => client.get<any, TaskListSummary[]>(`/projects/${projectId}/lists`),
 
   /** 更新列表，PUT /api/v1/projects/{projectId}/lists/{id} */
   update: (projectId: number, id: number, data: { name: string }) =>
@@ -41,44 +40,41 @@ export const taskApi = {
 
   /** 获取列表下卡片，GET /api/v1/lists/{listId}/tasks */
   list: (listId: number, page = 1, size = 20) =>
-    client.get<any, PaginatedResult<TaskDetail>>(`/lists/${listId}/tasks`, { params: { page, size } }),
+    client.get<any, PaginatedResult<TaskDetail>>(`/lists/${listId}/tasks`, {
+      params: { page, size },
+    }),
 
   /** 获取卡片详情，GET /api/v1/tasks/{id} */
-  getById: (id: number) =>
-    client.get<any, TaskDetail>(`/tasks/${id}`),
+  getById: (id: number) => client.get<any, TaskDetail>(`/tasks/${id}`),
 
   /** 更新卡片，PUT /api/v1/tasks/{id} */
   update: (id: number, data: UpdateTaskRequest) =>
     client.put<any, TaskDetail>(`/tasks/${id}`, data),
 
   /** 删除卡片，DELETE /api/v1/tasks/{id} */
-  delete: (id: number) =>
-    client.delete<any, void>(`/tasks/${id}`),
+  delete: (id: number) => client.delete<any, void>(`/tasks/${id}`),
 
   /** 移动卡片，PUT /api/v1/tasks/{id}/move */
   move: (id: number, data: MoveTaskRequest) =>
     client.put<any, TaskDetail>(`/tasks/${id}/move`, data),
 
-  /** 卡片排序，PUT /api/v1/lists/{listId}/tasks/reorder */
-  reorder: (listId: number, items: ReorderItem[]) =>
-    client.put<any, void>(`/lists/${listId}/tasks/reorder`, items),
+  /** 卡片排序，PUT /api/v1/projects/{projectId}/lists/{listId}/tasks/reorder */
+  reorder: (projectId: number, listId: number, items: ReorderItem[]) =>
+    client.put<any, void>(`/projects/${projectId}/lists/${listId}/tasks/reorder`, items),
 };
 
 /** 清单 API */
 export const checklistApi = {
   /** 获取任务的所有检查项 GET /api/v1/tasks/{taskId}/checklist */
-  list: (taskId: number) =>
-    client.get<any, ChecklistItem[]>(`/tasks/${taskId}/checklist`),
+  list: (taskId: number) => client.get<any, ChecklistItem[]>(`/tasks/${taskId}/checklist`),
 
   /** 添加检查项 POST /api/v1/tasks/{taskId}/checklist */
   create: (taskId: number, title: string) =>
     client.post<any, ChecklistItem>(`/tasks/${taskId}/checklist`, { title }),
 
   /** 切换完成状态 PUT /api/v1/checklist/{id}/toggle */
-  toggle: (id: number) =>
-    client.put<any, ChecklistItem>(`/checklist/${id}/toggle`),
+  toggle: (id: number) => client.put<any, ChecklistItem>(`/checklist/${id}/toggle`),
 
   /** 删除检查项 DELETE /api/v1/checklist/{id} */
-  delete: (id: number) =>
-    client.delete<any, void>(`/checklist/${id}`),
+  delete: (id: number) => client.delete<any, void>(`/checklist/${id}`),
 };

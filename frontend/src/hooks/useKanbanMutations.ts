@@ -34,19 +34,18 @@ export function useReorderTasks(listId: number, projectId: number) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (items: ReorderItem[]) => taskApi.reorder(listId, items),
+    mutationFn: (items: ReorderItem[]) => taskApi.reorder(projectId, listId, items),
     onMutate: async (items) => {
       await queryClient.cancelQueries({ queryKey: ['projects', projectId] });
       const previous = queryClient.getQueryData<Project>(['projects', projectId]);
 
       queryClient.setQueryData<Project>(['projects', projectId], (old) => {
         if (!old) return old;
+
         return {
           ...old,
           lists: old.lists?.map((l) =>
-            l.id === listId
-              ? { ...l, tasks: reorderByItems(l.tasks, items) }
-              : l,
+            l.id === listId ? { ...l, tasks: reorderByItems(l.tasks, items) } : l,
           ),
         };
       });

@@ -7,11 +7,12 @@ import {
   MoreOutlined,
   EditOutlined,
 } from '@ant-design/icons';
-import { Draggable, Droppable } from '@hello-pangea/dnd';
+import { Draggable, Droppable, type DraggableProvidedDragHandleProps } from '@hello-pangea/dnd';
 import KanbanCard from '@/pages/projects/KanbanCard';
 import { useDeleteTask, useMoveTask } from '@/hooks/useTasks';
 import { useDeleteTaskList } from '@/hooks/useTaskLists';
 import { makeCardId, makeColId } from '@/pages/projects/useKanbanDrag';
+import { useWhyDidYouUpdate } from '@/hooks/useWhyDidYouUpdate';
 import type { TaskListSummary } from '@/types/task';
 
 const { Text } = Typography;
@@ -20,7 +21,6 @@ interface KanbanColumnProps {
   list: TaskListSummary;
   projectId: number;
   columnIndex: number;
-  allLists: TaskListSummary[];
   onCardMoved: () => void;
   onCardClick: (cardId: number) => void;
   onTaskDeleted?: (taskId: number) => void;
@@ -34,10 +34,9 @@ interface KanbanColumnProps {
 }
 
 export default function KanbanColumn({
-  list,
+  list, //  task column data
   projectId,
   columnIndex,
-  allLists,
   onCardMoved,
   onCardClick,
   onTaskDeleted,
@@ -51,7 +50,15 @@ export default function KanbanColumn({
   const deleteList = useDeleteTaskList(projectId);
   const { modal } = App.useApp();
 
-  const targetLists = allLists.filter((l) => l.id !== list.id);
+  useWhyDidYouUpdate('KanbanColumn', {
+    list,
+    projectId,
+    columnIndex,
+    isMember,
+    focusMode,
+    readOnly,
+  } as Record<string, unknown>);
+
   const isEmpty = list.tasks.length === 0;
 
   // ---- More menu ----
@@ -116,7 +123,6 @@ export default function KanbanColumn({
               card={card}
               index={0}
               listId={list.id}
-              targetLists={targetLists}
               readOnly={readOnly}
               onClick={() => onCardClick(card.id)}
               onDelete={() => {
@@ -180,7 +186,6 @@ export default function KanbanColumn({
                       card={card}
                       index={i}
                       listId={list.id}
-                      targetLists={targetLists}
                       isDragging={cardSnapshot.isDragging}
                       readOnly={readOnly}
                       onClick={() => onCardClick(card.id)}
@@ -226,7 +231,7 @@ export default function KanbanColumn({
 
   // ---- Column content (shared across all modes) ----
   const renderColumnContent = (
-    dragHandleProps?: Record<string, unknown> | null,
+    dragHandleProps?: DraggableProvidedDragHandleProps | null,
     isColumnDragging?: boolean,
   ) => (
     <div

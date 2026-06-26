@@ -191,13 +191,17 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public void reorder(Long listId, List<ReorderItem> items, Long currentUserId) {
+    public void reorder(Long projectId, Long listId, List<ReorderItem> items, Long currentUserId) {
         TaskList list = getTaskListOrThrow(listId);
-        checkMemberByProjectId(list.getProjectId(), currentUserId);
+        if (!list.getProjectId().equals(projectId)) {
+            throw BusinessException.badRequest("列表不属于该项目");
+        }
+        checkMemberByProjectId(projectId, currentUserId);
 
+        // 任务 ID 全局唯一，直接按 ID 更新即可
         for (ReorderItem item : items) {
             Task task = taskMapper.selectById(item.getId());
-            if (task != null && task.getListId().equals(listId)) {
+            if (task != null) {
                 task.setSortOrder(item.getSortOrder());
                 taskMapper.updateById(task);
             }

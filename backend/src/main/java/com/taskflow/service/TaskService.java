@@ -44,5 +44,5 @@ public interface TaskService {
     /**
      * 同列表内批量排序
      */
-    void reorder(Long listId, List<ReorderItem> items, Long currentUserId);
+    void reorder(Long projectId, Long listId, List<ReorderItem> items, Long currentUserId);
 }

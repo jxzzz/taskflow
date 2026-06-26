@@ -1,11 +1,12 @@
 import { useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
-import type { DragStart, DragUpdate, DropResult } from '@hello-pangea/dnd';
+import type { DragStart, DropResult } from '@hello-pangea/dnd';
 import { useMoveTask } from '@/hooks/useTasks';
 
 import { taskApi, taskListApi } from '@/api/tasks';
 import type { TaskListSummary } from '@/types/task';
+import { computeSortOrders } from '@/hooks/useKanbanMutations';
 
 interface UseKanbanDragParams {
   projectId: number;
@@ -52,7 +53,6 @@ export function useKanbanDrag({
 }: UseKanbanDragParams) {
   const queryClient = useQueryClient();
   const moveTask = useMoveTask();
-
   // Refs track latest values — avoids stale closures in callbacks
   const listsRef = useRef(lists);
   listsRef.current = lists;
@@ -77,68 +77,9 @@ export function useKanbanDrag({
     [onDragStartClosesDrawer],
   );
 
-  // ---- onDragUpdate (optimistic local updates) ----
-  const handleDragUpdate = useCallback(
-    (update: DragUpdate) => {
-      const { destination, source, type } = update;
-      if (!destination) return;
-      if (source.droppableId === destination.droppableId && source.index === destination.index) return;
-
-      if (type === 'COLUMN') {
-        // Column reorder — splice columnOrder array
-        const current = columnOrderRef.current;
-        const reordered = [...current];
-        const [removed] = reordered.splice(source.index, 1);
-        reordered.splice(destination.index, 0, removed);
-        setColumnOrder(reordered);
-        return;
-      }
-
-      if (type === 'CARD') {
-        // Card move/reorder — splice task arrays within lists
-        const srcListId = parseListDroppableId(source.droppableId);
-        const dstListId = parseListDroppableId(destination.droppableId);
-        if (srcListId === null || dstListId === null) return;
-
-        const currentLists = listsRef.current;
-        const srcList = currentLists.find((l) => l.id === srcListId);
-        if (!srcList) return;
-
-        const srcTasks = [...srcList.tasks];
-        const [moved] = srcTasks.splice(source.index, 1);
-        if (!moved) return;
-
-        const newSrcList = { ...srcList, tasks: srcTasks, taskCount: srcTasks.length };
-
-        let newDstList: TaskListSummary;
-        if (srcListId === dstListId) {
-          // Reorder within same list — splice into the already-modified srcTasks
-          srcTasks.splice(destination.index, 0, moved);
-          newSrcList.tasks = srcTasks;
-          newSrcList.taskCount = srcTasks.length;
-          setLists(currentLists.map((l) => (l.id === srcListId ? newSrcList : l)));
-          return;
-        }
-
-        // Cross-list move
-        const dstList = currentLists.find((l) => l.id === dstListId);
-        if (!dstList) return;
-
-        const dstTasks = [...dstList.tasks];
-        dstTasks.splice(destination.index, 0, moved);
-        newDstList = { ...dstList, tasks: dstTasks, taskCount: dstTasks.length };
-
-        setLists(
-          currentLists.map((l) => {
-            if (l.id === srcListId) return newSrcList;
-            if (l.id === dstListId) return newDstList;
-            return l;
-          }),
-        );
-      }
-    },
-    [setLists, setColumnOrder],
-  );
+  // ---- onDragUpdate ----
+  // rbd handles visual feedback via CSS transform — no React state updates needed here.
+  const handleDragUpdate = useCallback(() => {}, []);
 
   // ---- onDragEnd (persist to server) ----
   const handleDragEnd = useCallback(
@@ -154,23 +95,27 @@ export function useKanbanDrag({
         return;
       }
 
-      if (source.droppableId === destination.droppableId && source.index === destination.index) return;
+      if (source.droppableId === destination.droppableId && source.index === destination.index)
+        return;
+
+      const snapshot = snapshotRef.current;
+      if (!snapshot) return;
 
       // ---- Column reorder ----
       if (type === 'COLUMN') {
-        const currentColumnOrder = columnOrderRef.current;
+        const reordered = [...snapshot.columnOrder];
+        const [removed] = reordered.splice(source.index, 1);
+        reordered.splice(destination.index, 0, removed);
+        setColumnOrder(reordered);
 
-        // Derive sort orders from the CURRENT column order (already updated by handleDragUpdate).
-        // Not using computeSortOrders with source/dest indices because listsRef.current
-        // may be in a different order than what the indices reference.
-        const items = currentColumnOrder.map((colId, index) => ({
+        const items = reordered.map((colId, index) => ({
           id: Number(colId.replace('list-', '')),
           sortOrder: index * 1000,
         }));
         taskListApi
           .reorder(projectId, items)
           .catch(() => {
-            setColumnOrder(snapshotRef.current?.columnOrder ?? currentColumnOrder);
+            setColumnOrder(snapshot.columnOrder);
             message.error('列排序失败');
           })
           .finally(() => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }));
@@ -186,24 +131,33 @@ export function useKanbanDrag({
         const dstListId = parseListDroppableId(destination.droppableId);
         if (srcListId === null || dstListId === null) return;
 
-        const currentLists = listsRef.current;
-
         // Within-column reorder
         if (srcListId === dstListId) {
-          const srcList = currentLists.find((l) => l.id === srcListId);
-          if (!srcList) return;
+          const originalSrcList = snapshot.lists.find((l) => l.id === srcListId);
+          if (!originalSrcList) return;
 
-          // Derive sort orders from the CURRENT task order (already updated by handleDragUpdate).
-          // Not using computeSortOrders with source/dest indices because tasks were already
-          // re-arranged optimistically and the indices no longer match the current array.
-          const items = srcList.tasks.map((task, index) => ({
-            id: task.id,
-            sortOrder: index * 1000,
-          }));
+          const items = computeSortOrders(
+            originalSrcList.tasks,
+            source.index,
+            destination.index,
+          );
+
+          // Optimistic update
+          const reordered = [...originalSrcList.tasks];
+          const [moved] = reordered.splice(source.index, 1);
+          reordered.splice(destination.index, 0, moved);
+          setLists(
+            snapshot.lists.map((l) =>
+              l.id === srcListId
+                ? { ...l, tasks: reordered, taskCount: reordered.length }
+                : l,
+            ),
+          );
+
           taskApi
-            .reorder(srcListId, items)
+            .reorder(projectId, srcListId, items)
             .catch(() => {
-              if (snapshotRef.current) setLists(snapshotRef.current.lists);
+              setLists(snapshot.lists);
               message.error('排序失败');
             })
             .finally(() => queryClient.invalidateQueries({ queryKey: ['projects', projectId] }));
@@ -211,6 +165,23 @@ export function useKanbanDrag({
         }
 
         // Cross-column move
+        const srcList = snapshot.lists.find((l) => l.id === srcListId);
+        const dstList = snapshot.lists.find((l) => l.id === dstListId);
+        if (!srcList || !dstList) return;
+
+        const srcTasks = [...srcList.tasks];
+        const [moved] = srcTasks.splice(source.index, 1);
+        const dstTasks = [...dstList.tasks];
+        dstTasks.splice(destination.index, 0, moved);
+
+        setLists(
+          snapshot.lists.map((l) => {
+            if (l.id === srcListId) return { ...l, tasks: srcTasks, taskCount: srcTasks.length };
+            if (l.id === dstListId) return { ...l, tasks: dstTasks, taskCount: dstTasks.length };
+            return l;
+          }),
+        );
+
         moveTask.mutate(
           {
             id: cardId,
@@ -218,7 +189,7 @@ export function useKanbanDrag({
           },
           {
             onError: () => {
-              if (snapshotRef.current) setLists(snapshotRef.current.lists);
+              setLists(snapshot.lists);
             },
           },
         );

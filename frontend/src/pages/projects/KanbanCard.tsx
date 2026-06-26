@@ -25,7 +25,6 @@ interface KanbanCardProps {
   card: TaskCardBrief;
   index: number;
   listId: number;
-  targetLists: TaskListSummary[];
   onClick: () => void;
   onDelete: () => void;
   onMove: (targetListId: number) => void;
@@ -39,7 +38,6 @@ export default function KanbanCard({
   card,
   index: _index,
   listId: _listId,
-  targetLists,
   onClick,
   onDelete,
   onMove,
@@ -226,29 +224,6 @@ export default function KanbanCard({
               style={{ flexShrink: 0, opacity: 0, transition: 'opacity 0.15s ease' }}
               className="card-actions"
             >
-              {targetLists.length > 0 && (
-                <Popover
-                  trigger="click"
-                  content={
-                    <div style={{ width: 150 }}>
-                      <Select
-                        size="small"
-                        style={{ width: '100%' }}
-                        placeholder="移动到"
-                        options={targetLists.map((l) => ({ label: l.name, value: l.id }))}
-                        onChange={(val) => onMove(val)}
-                      />
-                    </div>
-                  }
-                >
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<SwapOutlined />}
-                    style={{ fontSize: 11, color: 'var(--color-ink-disabled)' }}
-                  />
-                </Popover>
-              )}
               <Popconfirm title="删除？" onConfirm={onDelete} okText="删除" cancelText="取消">
                 <Button
                   type="text"
