@@ -100,6 +100,35 @@ docker compose -f docker-compose.prod.yml up -d
 
 **Deploy** (`.github/workflows/deploy.yml`): Runs after Build & Push completes, SSHes to server, pulls images, runs `docker compose -f docker-compose.prod.yml up -d --no-deps`.
 
+## Component Guidelines (Frontend)
+
+Split components by **responsibility, not by line count**. A component file that does multiple unrelated things is always wrong; a long file that does one thing well is fine.
+
+**Split when:**
+
+| Signal | Action |
+|--------|--------|
+| A file contains a visually independent sub-component (e.g., an illustration, a complex badge, a list item with its own state) | Extract to its own file in the same directory or a `components/` subdirectory |
+| A block of inline styles exceeds ~6 properties | Extract to a named `const styles = { ... }` object, or move to a CSS file |
+| A chunk of logic can be described in one sentence ("manages drag state", "fetches user list") | Extract to a custom hook in `src/hooks/` |
+| Two pieces of UI don't share any state or props | They don't belong in the same file |
+
+**Don't split when:**
+
+| Signal | Reason |
+|--------|--------|
+| The extracted component would be ~5 lines and used only once | Adds indirection without clarity |
+| Splitting forces 6+ props to be threaded between parent and child | Props drilling is a smell that the split boundary is wrong |
+| The "pieces" are tightly coupled variations of the same concern | Keep them together; refactor later when a clear seam emerges |
+
+**Separation of concerns within a component:**
+
+- **Logic** (state, effects, event handlers) → custom hooks (`useXxx`)
+- **Styles** → CSS custom properties (`var(--xxx)`) or co-located `*.css` files
+- **Markup** → JSX in the component return
+
+Avoid large inline `style={{...}}` blocks — they hurt readability and can't be reused. Use CSS variables defined in `src/styles/variables.css` for theme values.
+
 ## Key Conventions
 
 - **Frontend types** mirror backend DTOs exactly — TypeScript interfaces include `@/types/` comments matching the Java class name (e.g., `// 匹配 TaskMoveRequest.java`).
