@@ -55,8 +55,8 @@ export default function ActivityTimeline({
         <Typography.Title
           level={5}
           style={{
-            fontFamily: "'Newsreader', Georgia, serif",
-            fontWeight: 500,
+            fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif",
+            fontWeight: 400,
             margin: 0,
             marginBottom: 16,
           }}
@@ -92,8 +92,8 @@ export default function ActivityTimeline({
         <Typography.Title
           level={5}
           style={{
-            fontFamily: "'Newsreader', Georgia, serif",
-            fontWeight: 500,
+            fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif",
+            fontWeight: 400,
             margin: 0,
           }}
         >
@@ -107,7 +107,7 @@ export default function ActivityTimeline({
           borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--color-border-subtle)',
           padding: '18px 24px 6px',
-          boxShadow: 'var(--shadow-xs)',
+          boxShadow: 'var(--shadow-elevated)',
         }}
       >
         <Timeline
@@ -147,8 +147,8 @@ export default function ActivityTimeline({
                         style={{
                           margin: 0,
                           fontSize: 10.5,
-                          background: 'var(--tag-lavender)',
-                          color: 'var(--tag-lavender-text)',
+                          background: 'var(--color-lavender-soft)',
+                          color: 'var(--color-ink-primary)',
                           border: 'none',
                           borderRadius: 4,
                           padding: '0 8px',

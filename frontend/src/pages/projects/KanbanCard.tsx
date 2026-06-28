@@ -47,13 +47,13 @@ export default function KanbanCard({
   const checklistPct = hasChecklist ? Math.round((completedCount / checklistCount) * 100) : 0;
 
   const style: React.CSSProperties = {
-    background: 'linear-gradient(180deg, #ffffff 0%, #fafcfa 100%)',
+    background: '#ffffff',
     borderRadius: 'var(--radius-sm)',
     minHeight: 100,
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: isDragging ? 'var(--shadow-elevated)' : 'var(--shadow-xs)',
-    border: '1px solid rgba(155, 188, 158, 0.25)',
+    boxShadow: isDragging ? 'var(--shadow-elevated)' : 'none',
+    border: '1px solid var(--color-border-subtle)',
     cursor: isDragging ? 'grabbing' : 'grab',
     opacity: isDragging ? 0.85 : 1,
   };
@@ -67,14 +67,14 @@ export default function KanbanCard({
         isDragging
           ? undefined
           : (e) => {
-              e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+              e.currentTarget.style.borderColor = 'var(--color-border-default)';
             }
       }
       onMouseLeave={
         isDragging
           ? undefined
           : (e) => {
-              e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
+              e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
             }
       }
     >
@@ -89,7 +89,7 @@ export default function KanbanCard({
             lineHeight: 1.35,
             color: 'var(--color-ink-primary)',
             wordBreak: 'break-word',
-            fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
             letterSpacing: '-0.01em',
             marginBottom: card.contentSnippet || hasChecklist ? 6 : 8,
           }}
@@ -110,7 +110,7 @@ export default function KanbanCard({
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden',
               marginBottom: hasChecklist ? 8 : 8,
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
             }}
           >
             {card.contentSnippet}
@@ -124,14 +124,14 @@ export default function KanbanCard({
               <CheckSquareOutlined
                 style={{
                   fontSize: 10,
-                  color: checklistPct === 100 ? '#9bbc9e' : 'rgba(43,40,37,0.18)',
+                  color: checklistPct === 100 ? 'var(--color-sage)' : 'var(--color-ink-disabled)',
                 }}
               />
               <span
                 style={{
                   fontSize: 10.5,
                   color: 'var(--color-ink-tertiary)',
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   fontWeight: 500,
                 }}
               >
@@ -152,7 +152,7 @@ export default function KanbanCard({
                   height: '100%',
                   borderRadius: 2,
                   width: `${checklistPct}%`,
-                  background: checklistPct === 100 ? '#9bbc9e' : '#9b97d4',
+                  background: checklistPct === 100 ? 'var(--color-sage)' : 'var(--color-ink-primary)',
                   transition: 'width 0.4s cubic-bezier(0.19, 1, 0.22, 1)',
                   minWidth: checklistPct > 0 ? 4 : 0,
                 }}
@@ -180,11 +180,11 @@ export default function KanbanCard({
                   gap: 3,
                   padding: '1px 6px',
                   borderRadius: 9999,
-                  background: card.priority === 2 ? 'rgba(232,96,96,0.08)' : 'rgba(224,184,80,0.1)',
+                  background: card.priority === 2 ? 'var(--color-coral-soft)' : 'var(--color-butter-soft)',
                   fontSize: 10,
                   fontWeight: 500,
                   color: priorityColor,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                 }}
               >
                 <span
@@ -198,7 +198,7 @@ export default function KanbanCard({
                 style={{
                   fontSize: 10.5,
                   color: isOverdue ? 'var(--color-coral)' : 'var(--color-ink-tertiary)',
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   display: 'flex',
                   alignItems: 'center',
                   gap: 3,

@@ -176,7 +176,7 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div style={{ textAlign: 'center', padding: 80 }}>
-        <Title level={4} style={{ color: 'rgba(43,40,37,0.4)' }}>
+        <Title level={4} style={{ color: 'var(--color-ink-tertiary)' }}>
           项目不存在
         </Title>
         <Button
@@ -234,8 +234,8 @@ export default function ProjectDetailPage() {
       >
         <Tag
           style={{
-            background: 'var(--tag-lavender)',
-            color: 'var(--tag-lavender-text)',
+            background: 'var(--color-lavender-soft)',
+            color: 'var(--color-ink-primary)',
             border: 'none',
             margin: 0,
           }}
@@ -244,8 +244,8 @@ export default function ProjectDetailPage() {
         </Tag>
         <Tag
           style={{
-            background: project.isPublic ? 'var(--tag-sage)' : 'rgba(0,0,0,0.04)',
-            color: project.isPublic ? 'var(--tag-sage-text)' : 'var(--color-ink-tertiary)',
+            background: project.isPublic ? 'var(--color-sage-soft)' : 'rgba(0,0,0,0.04)',
+            color: project.isPublic ? 'var(--color-sage)' : 'var(--color-ink-tertiary)',
             border: 'none',
             margin: 0,
             display: 'inline-flex',
@@ -267,7 +267,7 @@ export default function ProjectDetailPage() {
           {(PROJECT_STATUS_CONFIG[project.status] || PROJECT_STATUS_CONFIG.active).label}
         </Tag>
         <Text style={{ fontSize: 12, color: 'var(--color-ink-disabled)' }}>·</Text>
-        <TeamOutlined style={{ color: 'var(--color-lavender)', fontSize: 13 }} />
+        <TeamOutlined style={{ color: 'var(--color-ink-secondary)', fontSize: 13 }} />
         <Text style={{ fontSize: 13, color: 'var(--color-ink-secondary)' }}>
           {project.memberCount} 人
         </Text>
@@ -292,8 +292,8 @@ export default function ProjectDetailPage() {
                 alignItems: 'center',
                 gap: 4,
                 fontSize: 12.5,
-                color: 'var(--color-sky, #5a809b)',
-                fontFamily: "'DM Sans', sans-serif",
+                color: 'var(--color-lavender)',
+                fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                 textDecoration: 'none',
               }}
             >
@@ -383,8 +383,8 @@ export default function ProjectDetailPage() {
               style={{
                 fontSize: 12.5,
                 fontWeight: 500,
-                fontFamily: "'DM Sans', sans-serif",
-                color: focusMode ? 'var(--color-lavender)' : 'var(--color-ink-disabled)',
+                fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
+                color: focusMode ? 'var(--color-ink-primary)' : 'var(--color-ink-disabled)',
                 transition: 'color 0.25s ease',
                 userSelect: 'none',
               }}
@@ -486,7 +486,7 @@ export default function ProjectDetailPage() {
                         height: '100%',
                         minHeight: 120,
                         borderRadius: 'var(--radius-lg)',
-                        border: '2px dashed rgba(155, 151, 212, 0.18)',
+                        border: '2px dashed rgba(0, 117, 222, 0.06)',
                         background: 'transparent',
                         cursor: 'pointer',
                         display: 'flex',
@@ -498,12 +498,12 @@ export default function ProjectDetailPage() {
                         animation: 'addListFadeIn 0.4s ease',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.4)';
-                        e.currentTarget.style.background = 'rgba(155, 151, 212, 0.03)';
-                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(155, 151, 212, 0.05)';
+                        e.currentTarget.style.borderColor = 'rgba(0, 117, 222, 0.20)';
+                        e.currentTarget.style.background = 'rgba(0, 117, 222, 0.02)';
+                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(0, 117, 222, 0.04)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(155, 151, 212, 0.18)';
+                        e.currentTarget.style.borderColor = 'rgba(0, 117, 222, 0.06)';
                         e.currentTarget.style.background = 'transparent';
                         e.currentTarget.style.boxShadow = 'none';
                       }}
@@ -513,11 +513,11 @@ export default function ProjectDetailPage() {
                           width: 32,
                           height: 32,
                           borderRadius: '50%',
-                          background: 'rgba(155, 151, 212, 0.10)',
+                          background: 'var(--color-lavender-soft)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          color: '#9b97d4',
+                          color: '#0075de',
                           fontSize: 16,
                           transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
                         }}
@@ -527,9 +527,9 @@ export default function ProjectDetailPage() {
                       <Text
                         style={{
                           fontSize: 13,
-                          color: 'rgba(155, 151, 212, 0.5)',
+                          color: 'rgba(0, 117, 222, 0.25)',
                           fontWeight: 500,
-                          fontFamily: "'DM Sans', sans-serif",
+                          fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                         }}
                       >
                         新建列表

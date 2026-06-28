@@ -14,7 +14,7 @@ const pillBase: React.CSSProperties = {
   borderRadius: 9999,
   fontSize: 11,
   fontWeight: 500,
-  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
   letterSpacing: '0.01em',
   border: 'none',
 };
@@ -60,7 +60,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
     if (e.key === 'Escape') { e.preventDefault(); cancelAdd(); }
   }
 
-  const ink = { primary: '#2b2825', secondary: 'rgba(43,40,37,0.58)', tertiary: 'rgba(43,40,37,0.36)', disabled: 'rgba(43,40,37,0.18)' };
+  const ink = { primary: 'var(--color-ink-primary)', secondary: 'var(--color-ink-secondary)', tertiary: 'var(--color-ink-tertiary)', disabled: 'var(--color-ink-disabled)' };
 
   return (
     <div>
@@ -68,25 +68,25 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
         <span style={{
           ...pillBase,
-          background: task.priority === 2 ? '#fae3e1' : task.priority === 1 ? '#faf0da' : 'rgba(0,0,0,0.04)',
-          color: task.priority === 2 ? '#b86d6a' : task.priority === 1 ? '#9e853d' : ink.tertiary,
+          background: task.priority === 2 ? 'var(--color-coral-soft)' : task.priority === 1 ? 'var(--color-butter-soft)' : 'rgba(0,0,0,0.04)',
+          color: task.priority === 2 ? 'var(--color-coral)' : task.priority === 1 ? 'var(--color-butter)' : ink.tertiary,
         }}>
           {task.priorityLabel}
         </span>
-        <span style={{ ...pillBase, background: '#e8e6f8', color: '#6b67a8' }}>
+        <span style={{ ...pillBase, background: 'var(--color-lavender-soft)', color: 'var(--color-ink-secondary)' }}>
           {task.listName}
         </span>
         {task.dueDate && (
           <span style={{
             ...pillBase,
-            background: task.isOverdue ? '#fae3e1' : 'rgba(0,0,0,0.04)',
-            color: task.isOverdue ? '#b86d6a' : ink.secondary,
+            background: task.isOverdue ? 'var(--color-coral-soft)' : 'rgba(0,0,0,0.04)',
+            color: task.isOverdue ? 'var(--color-coral)' : ink.secondary,
           }}>
             {task.isOverdue ? '⚠ ' : ''}{dayjs(task.dueDate).format('MM/DD HH:mm')}
           </span>
         )}
         {task.assigneeName && (
-          <span style={{ ...pillBase, background: '#e1edf6', color: '#5a809b' }}>
+          <span style={{ ...pillBase, background: 'var(--color-sky-soft)', color: 'var(--color-lavender)' }}>
             {task.assigneeName}
           </span>
         )}
@@ -102,12 +102,12 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
           <span style={{
             fontSize: 11, fontWeight: 600, color: ink.disabled,
             textTransform: 'uppercase', letterSpacing: '0.06em',
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
           }}>
             检查项
           </span>
           {totalCount > 0 && (
-            <span style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'DM Sans', sans-serif" }}>
+            <span style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif" }}>
               {completedCount}/{totalCount}
             </span>
           )}
@@ -124,8 +124,8 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
               height: '100%', borderRadius: 2,
               width: `${pct}%`,
               background: pct === 100
-                ? 'linear-gradient(90deg, #9b97d4, #9bbc9e)'
-                : '#9b97d4',
+                ? 'linear-gradient(90deg, var(--color-ink-primary), var(--color-sage))'
+                : 'var(--color-ink-primary)',
               transition: 'width 0.5s cubic-bezier(0.19, 1, 0.22, 1)',
             }} />
           </div>
@@ -145,7 +145,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
             }}
             onClick={() => toggleItem.mutate(item.id)}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(155,151,212,0.06)';
+              (e.currentTarget as HTMLElement).style.background = 'rgba(23,23,28,0.06)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.background = 'transparent';
@@ -159,7 +159,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
               textDecorationColor: 'rgba(0,0,0,0.15)',
               transition: 'color 0.25s ease',
               wordBreak: 'break-word',
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
             }}>
               {item.title}
             </span>
@@ -185,13 +185,13 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
             display: 'flex', alignItems: 'flex-start', gap: 10,
             padding: '8px 10px 8px 4px',
             borderRadius: 8,
-            background: 'rgba(155,151,212,0.04)',
-            border: '1px solid rgba(155,151,212,0.15)',
+            background: 'rgba(23,23,28,0.04)',
+            border: '1px solid rgba(23,23,28,0.10)',
           }}>
             <span style={{
               width: 16, height: 16, marginTop: 3, flexShrink: 0,
-              borderRadius: 3, border: '2px solid rgba(155,151,212,0.25)',
-              background: 'rgba(155,151,212,0.04)',
+              borderRadius: 3, border: '2px solid rgba(23,23,28,0.15)',
+              background: 'rgba(23,23,28,0.04)',
             }} />
             <input
               ref={inputRef}
@@ -206,15 +206,15 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
                 background: 'transparent',
                 fontSize: 14, lineHeight: 1.55,
                 color: ink.primary,
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-                caretColor: '#9b97d4',
+                fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
+                caretColor: 'var(--color-ink-primary)',
                 padding: 0,
               }}
             />
             <span style={{
-              fontSize: 10, color: 'rgba(155,151,212,0.35)',
-              fontFamily: "'DM Sans', sans-serif",
-              background: 'rgba(155,151,212,0.06)',
+              fontSize: 10, color: 'rgba(23,23,28,0.22)',
+              fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
+              background: 'rgba(23,23,28,0.06)',
               padding: '1px 6px', borderRadius: 4,
               marginTop: 2, flexShrink: 0,
               letterSpacing: '0.03em',
@@ -236,8 +236,8 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
               userSelect: 'none',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(155,151,212,0.04)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(155,151,212,0.12)';
+              (e.currentTarget as HTMLElement).style.background = 'rgba(23,23,28,0.04)';
+              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(23,23,28,0.08)';
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLElement).style.background = 'transparent';
@@ -246,17 +246,17 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
           >
             <span style={{
               width: 16, height: 16, flexShrink: 0, marginTop: 3,
-              borderRadius: 3, border: '1.5px dashed rgba(155,151,212,0.25)',
+              borderRadius: 3, border: '1.5px dashed rgba(23,23,28,0.15)',
               background: 'transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'border-color 0.15s ease, background 0.15s ease',
             }}>
-              <PlusOutlined style={{ fontSize: 9, color: 'rgba(155,151,212,0.3)' }} />
+              <PlusOutlined style={{ fontSize: 9, color: 'rgba(23,23,28,0.2)' }} />
             </span>
             <span style={{
               flex: 1, fontSize: 13.5, lineHeight: 1.55,
               color: ink.disabled,
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
               fontStyle: 'italic',
             }}>
               添加检查项
@@ -274,7 +274,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
                 background: 'rgba(0,0,0,0.015)',
                 marginTop: 8,
               }}>
-                <div style={{ fontSize: 13, color: ink.tertiary, marginBottom: 10, fontFamily: "'DM Sans', sans-serif" }}>
+                <div style={{ fontSize: 13, color: ink.tertiary, marginBottom: 10, fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif" }}>
                   描述中有 {contentLines.length} 行内容
                 </div>
                 <Button
@@ -298,7 +298,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
           <span style={{
             fontSize: 11, fontWeight: 600, color: ink.disabled,
             textTransform: 'uppercase', letterSpacing: '0.06em',
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
           }}>
             描述
           </span>
@@ -311,7 +311,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
             color: ink.secondary,
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
-            fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+            fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
           }}>
             {task.content}
           </div>
@@ -328,7 +328,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
           <div style={{ fontSize: 9, color: ink.disabled, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
             Created
           </div>
-          <div style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif" }}>
             {dayjs(task.createTime).format('YYYY/MM/DD HH:mm')}
           </div>
         </div>
@@ -336,7 +336,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
           <div style={{ fontSize: 9, color: ink.disabled, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
             Updated
           </div>
-          <div style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'DM Sans', sans-serif" }}>
+          <div style={{ fontSize: 11, color: ink.tertiary, fontVariantNumeric: 'tabular-nums', fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif" }}>
             {dayjs(task.updateTime).format('YYYY/MM/DD HH:mm')}
           </div>
         </div>

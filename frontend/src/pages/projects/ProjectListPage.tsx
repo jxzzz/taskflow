@@ -13,20 +13,20 @@ const { Text } = Typography;
 
 /** Soft gradient covers — pastel palette */
 const covers = [
-  'linear-gradient(135deg, #9b97d4 0%, #b8b5e0 100%)',
-  'linear-gradient(135deg, #9bbc9e 0%, #b8d4c0 100%)',
-  'linear-gradient(135deg, #e8a09c 0%, #f0c4c0 100%)',
-  'linear-gradient(135deg, #e8cf8e 0%, #f2deaa 100%)',
-  'linear-gradient(135deg, #99bcdb 0%, #b8d4e8 100%)',
-  'linear-gradient(135deg, #c4a0d4 0%, #dcc8e8 100%)',
+  'linear-gradient(135deg, #0075de 0%, #62aef0 100%)',
+  'linear-gradient(135deg, #1aae39 0%, #4cc96a 100%)',
+  'linear-gradient(135deg, #dd5b00 0%, #ff8c42 100%)',
+  'linear-gradient(135deg, #d6b6f6 0%, #e8d4fa 100%)',
+  'linear-gradient(135deg, #2a9d99 0%, #5cc4bf 100%)',
+  'linear-gradient(135deg, #ff64c8 0%, #ff8fd9 100%)',
 ];
 const getCover = (id: number) => covers[id % covers.length];
 
 const tagStyles = [
-  { bg: 'var(--tag-lavender)', color: 'var(--tag-lavender-text)' },
-  { bg: 'var(--tag-sage)', color: 'var(--tag-sage-text)' },
-  { bg: 'var(--tag-coral)', color: 'var(--tag-coral-text)' },
-  { bg: 'var(--tag-butter)', color: 'var(--tag-butter-text)' },
+  { bg: 'rgba(23,23,28,0.06)', color: 'var(--color-ink-primary)' },
+  { bg: 'var(--color-sage-soft)', color: 'var(--color-sage)' },
+  { bg: 'var(--color-coral-soft)', color: 'var(--color-coral)' },
+  { bg: 'var(--color-butter-soft)', color: 'var(--color-butter)' },
 ];
 
 export default function ProjectListPage() {
@@ -70,8 +70,8 @@ export default function ProjectListPage() {
                 style={{ borderRadius: 16, overflow: 'hidden', background: '#ffffff', boxShadow: 'var(--shadow-card)',
                   cursor: 'pointer', border: '1px solid rgba(0,0,0,0.04)',
                   transition: 'all 280ms cubic-bezier(0.19, 1, 0.22, 1)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-elevated)'; e.currentTarget.style.transform = 'translateY(-3px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-card)'; e.currentTarget.style.transform = 'none'; }}>
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-default)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.04)'; }}>
                 {/* Color cover */}
                 <div style={{ height: 72, background: cover, position: 'relative' }}>
                   <Tag style={{ position: 'absolute', top: 10, left: 10, margin: 0, border: 'none', background: 'rgba(255,255,255,0.25)', color: '#fff', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
@@ -84,14 +84,14 @@ export default function ProjectListPage() {
                 </div>
                 {/* Body */}
                 <div style={{ padding: '14px 16px 10px' }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: '#2b2825', marginBottom: 4 }}>{project.name}</div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-ink-primary)', marginBottom: 4 }}>{project.name}</div>
                   {project.description && (
-                    <Text style={{ fontSize: 12, color: 'rgba(43,40,37,0.48)', lineHeight: 1.4, display: 'block', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 12, color: 'var(--color-ink-secondary)', lineHeight: 1.4, display: 'block', marginBottom: 8 }}>
                       {project.description.slice(0, 55)}{project.description.length > 55 ? '…' : ''}
                     </Text>
                   )}
                   {dateRange && (
-                    <div style={{ fontSize: 11, color: 'rgba(43,40,37,0.35)', marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, color: 'var(--color-ink-tertiary)', marginBottom: 4 }}>
                       <CalendarOutlined style={{ marginRight: 4 }} />{dateRange}
                     </div>
                   )}
@@ -107,7 +107,7 @@ export default function ProjectListPage() {
                     </Tag>
                   </Space>
                   <Button type="text" size="small" icon={<EditOutlined />}
-                    onClick={(e) => { e.stopPropagation(); setEditProject(project); }} style={{ color: 'rgba(43,40,37,0.4)' }} />
+                    onClick={(e) => { e.stopPropagation(); setEditProject(project); }} style={{ color: 'var(--color-ink-tertiary)' }} />
                 </div>
               </div>
             </Col>
@@ -118,8 +118,8 @@ export default function ProjectListPage() {
       {data?.records?.length === 0 && !isFetching && (
         <div style={{ textAlign: 'center', padding: 72 }}>
           <div style={{ fontSize: 52, marginBottom: 16, opacity: 0.35 }}>📋</div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#2b2825', marginBottom: 6 }}>还没有项目</div>
-          <Text style={{ color: 'rgba(43,40,37,0.4)', display: 'block', marginBottom: 22 }}>创建一个项目，或让团队成员邀请你加入</Text>
+          <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--color-ink-primary)', marginBottom: 6 }}>还没有项目</div>
+          <Text style={{ color: 'var(--color-ink-secondary)', display: 'block', marginBottom: 22 }}>创建一个项目，或让团队成员邀请你加入</Text>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>创建项目</Button>
         </div>
       )}

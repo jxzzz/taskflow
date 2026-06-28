@@ -7,10 +7,12 @@ interface UseTaskCreationParams {
   lists: TaskListSummary[];
   projectId: number;
   taskCreateListId: number | undefined;
-  createList: { mutate: (vars: { name: string; sortOrder: number }, opts?: any) => void; isPending: boolean };
+  createList: {
+    mutate: (vars: { name: string; sortOrder: number }, opts?: any) => void;
+    isPending: boolean;
+  };
   createTask: { mutate: (args: { listId: number; data: CreateTaskRequest }, opts?: any) => void };
   queryClient: { invalidateQueries: (args: any) => void };
-  onQuickAddClose?: () => void;
   onTaskCreateClose: () => void;
 }
 
@@ -21,56 +23,49 @@ export function useTaskCreation({
   createList,
   createTask,
   queryClient,
-  onQuickAddClose,
   onTaskCreateClose,
 }: UseTaskCreationParams) {
   const bootstrappingRef = useRef(false);
 
-  const handleQuickAddSubmit = useCallback(
-    (data: { title: string; dueDate?: string; priority?: number }) => {
-      const targetListId = lists[0]?.id;
-      if (!targetListId) {
-        createList.mutate({ name: 'To Do', sortOrder: 0 }, {
-          onSuccess: (newList: any) => {
-            const listId = newList?.id;
-            if (listId) {
-              createTask.mutate(
-                { listId, data: { title: data.title, dueDate: data.dueDate, priority: data.priority } },
-                { onSuccess: () => { onQuickAddClose?.(); message.success('任务已创建 ✨'); } },
-              );
-            }
-          },
-        });
-        return;
-      }
-      createTask.mutate(
-        { listId: targetListId, data: { title: data.title, dueDate: data.dueDate, priority: data.priority } },
-        { onSuccess: () => { onQuickAddClose?.(); message.success('任务已创建 ✨'); } },
-      );
-    },
-    [lists, createList, createTask, onQuickAddClose],
-  );
-
   const handleTaskCreateSubmit = useCallback(
-    (data: { title: string; content?: string; priority?: number; dueDate?: string; checklistItems?: string[] }) => {
+    (data: {
+      title: string;
+      content?: string;
+      priority?: number;
+      dueDate?: string;
+      checklistItems?: string[];
+    }) => {
       const targetListId = taskCreateListId || lists[0]?.id;
       if (!targetListId) {
-        createList.mutate({ name: 'To Do', sortOrder: 0 }, {
-          onSuccess: (newList: any) => {
-            const listId = newList?.id;
-            if (listId) {
-              createTask.mutate(
-                { listId, data },
-                { onSuccess: () => { onTaskCreateClose(); message.success('任务已创建 ✨'); } },
-              );
-            }
+        createList.mutate(
+          { name: 'To Do', sortOrder: 0 },
+          {
+            onSuccess: (newList: any) => {
+              const listId = newList?.id;
+              if (listId) {
+                createTask.mutate(
+                  { listId, data },
+                  {
+                    onSuccess: () => {
+                      onTaskCreateClose();
+                      message.success('任务已创建 ✨');
+                    },
+                  },
+                );
+              }
+            },
           },
-        });
+        );
         return;
       }
       createTask.mutate(
         { listId: targetListId, data },
-        { onSuccess: () => { onTaskCreateClose(); message.success('任务已创建 ✨'); } },
+        {
+          onSuccess: () => {
+            onTaskCreateClose();
+            message.success('任务已创建 ✨');
+          },
+        },
       );
     },
     [lists, taskCreateListId, createList, createTask, onTaskCreateClose],
@@ -143,5 +138,5 @@ export function useTaskCreation({
     }
   }, [projectId, queryClient]);
 
-  return { handleQuickAddSubmit, handleTaskCreateSubmit, handleBootstrap };
+  return { handleTaskCreateSubmit, handleBootstrap };
 }

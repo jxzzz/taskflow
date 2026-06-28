@@ -11,12 +11,12 @@ interface TaskListViewProps {
   onTaskClick: (taskId: number) => void;
 }
 
-const LIST_DOT: string[] = ['#9b97d4', '#f0a850', '#9bbc9e', '#99bcdb', '#e8a09c'];
+const LIST_DOT: string[] = ['#0075de', '#dd5b00', '#1aae39', '#62aef0', '#d6b6f6'];
 
 const PRIORITY_DOT: Record<number, string> = {
   0: 'transparent',
-  1: '#e8cf8e',
-  2: '#e8a09c',
+  1: 'var(--color-butter)',
+  2: 'var(--color-coral)',
 };
 
 const PRIORITY_LABEL: Record<number, string> = {
@@ -67,7 +67,7 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
           transition: 'opacity 0.4s ease, transform 0.4s ease',
         }}
       >
-        <Text style={{ fontSize: 11.5, color: 'var(--color-ink-disabled)', fontFamily: "'DM Sans', sans-serif" }}>
+        <Text style={{ fontSize: 11.5, color: 'var(--color-ink-disabled)', fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif" }}>
           共 {totalTasks} 个任务
         </Text>
       </div>
@@ -102,7 +102,7 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
                 color: 'var(--color-ink-disabled)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
               }}
             >
               {label}
@@ -163,7 +163,7 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
                   fontSize: 13,
                   fontWeight: 500,
                   color: 'var(--color-ink-primary)',
-                  fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -178,7 +178,7 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
                   fontSize: 11.5,
                   color: dot,
                   fontWeight: 500,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                 }}
               >
                 {task.listName}
@@ -189,7 +189,7 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
                 style={{
                   fontSize: 11.5,
                   fontWeight: 500,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   color: task.priority > 0 ? PRIORITY_DOT[task.priority] : 'var(--color-ink-disabled)',
                 }}
               >
@@ -223,7 +223,7 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
                       style={{
                         fontSize: 10.5,
                         fontVariantNumeric: 'tabular-nums',
-                        fontFamily: "'DM Sans', sans-serif",
+                        fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                         color: checklistDone ? 'var(--color-sage)' : 'var(--color-ink-tertiary)',
                         fontWeight: 500,
                       }}
@@ -247,9 +247,9 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
                   style={{
                     fontSize: 11.5,
                     fontVariantNumeric: 'tabular-nums',
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                     color: task.dueDate
-                      ? isOverdue ? '#b86d6a' : 'var(--color-ink-secondary)'
+                      ? isOverdue ? 'var(--color-coral)' : 'var(--color-ink-secondary)'
                       : 'var(--color-ink-disabled)',
                     fontWeight: task.dueDate ? 500 : 400,
                   }}

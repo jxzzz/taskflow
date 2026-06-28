@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   PlusOutlined,
   ProjectOutlined,
-  BgColorsOutlined,
   TranslationOutlined,
   SettingOutlined,
   ThunderboltOutlined,
@@ -71,8 +70,8 @@ export default function QuickActionFab({ items }: QuickActionFabProps) {
           borderRadius: '50%',
           border: 'none',
           background: open
-            ? 'linear-gradient(135deg, #8b88c4 0%, #6b67a8 100%)'
-            : 'linear-gradient(135deg, #5B9FED 0%, #3D6FBF 100%)',
+            ? 'linear-gradient(135deg, #005bab 0%, #004a9e 100%)'
+            : 'linear-gradient(135deg, #0075de 0%, #005bab 100%)',
           color: '#fff',
           fontSize: 22,
           cursor: 'pointer',
@@ -80,8 +79,8 @@ export default function QuickActionFab({ items }: QuickActionFabProps) {
           alignItems: 'center',
           justifyContent: 'center',
           boxShadow: open
-            ? '0 6px 28px rgba(107,103,168,0.45), 0 0 0 6px rgba(107,103,168,0.08)'
-            : '0 4px 18px rgba(74,133,217,0.35), 0 0 0 3px rgba(74,133,217,0.10)',
+            ? '0 6px 28px rgba(0,117,222,0.45), 0 0 0 6px rgba(0,117,222,0.08)'
+            : '0 4px 18px rgba(0,117,222,0.35), 0 0 0 3px rgba(0,117,222,0.10)',
           transform: open ? 'rotate(45deg) scale(1.08)' : 'scale(1)',
           transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
           flexShrink: 0,
@@ -133,7 +132,7 @@ export default function QuickActionFab({ items }: QuickActionFabProps) {
               fontSize: 13,
               fontWeight: 600,
               color: 'var(--color-ink-primary)',
-              fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+              fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
             }}>
               {item.label}
             </span>
@@ -155,7 +154,6 @@ function parseColorToRgb(hex: string): string {
 /** Pre-built menu items */
 export function useQuickActionItems(
   onCreateProject: () => void,
-  onToggleTheme: () => void,
   onToggleLanguage: () => void,
 ): QuickActionItem[] {
   const navigate = useNavigate();
@@ -165,35 +163,28 @@ export function useQuickActionItems(
       key: 'new-project',
       icon: <ProjectOutlined />,
       label: '新建项目',
-      color: '#9b97d4',
+      color: '#0075de',
       onClick: onCreateProject,
     },
     {
       key: 'quick-task',
       icon: <ThunderboltOutlined />,
       label: '快速任务',
-      color: '#f0a850',
+      color: '#dd5b00',
       onClick: () => navigate(ROUTES.PROJECTS),
-    },
-    {
-      key: 'theme',
-      icon: <BgColorsOutlined />,
-      label: '主题切换',
-      color: '#9bbc9e',
-      onClick: onToggleTheme,
     },
     {
       key: 'language',
       icon: <TranslationOutlined />,
       label: '语言',
-      color: '#99bcdb',
+      color: '#62aef0',
       onClick: onToggleLanguage,
     },
     {
       key: 'settings',
       icon: <SettingOutlined />,
       label: '设置',
-      color: '#c4a0d4',
+      color: '#93939f',
       onClick: () => navigate(ROUTES.SETTINGS),
     },
   ];

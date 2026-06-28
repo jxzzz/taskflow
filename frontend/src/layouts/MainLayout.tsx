@@ -50,12 +50,12 @@ export default function MainLayout() {
         >
           {/* Flower/leaf mark */}
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect width="28" height="28" rx="8" fill="#9b97d4" fillOpacity="0.12" />
-            <circle cx="14" cy="10" r="3" stroke="#9b97d4" strokeWidth="1.6" />
-            <path d="M14 13v8" stroke="#9b97d4" strokeWidth="1.6" strokeLinecap="round" />
+            <rect width="28" height="28" rx="8" fill="#0075de" fillOpacity="0.10" />
+            <circle cx="14" cy="10" r="3" stroke="#0075de" strokeWidth="1.6" />
+            <path d="M14 13v8" stroke="#0075de" strokeWidth="1.6" strokeLinecap="round" />
             <path
               d="M10 19l4-3 4 3"
-              stroke="#9b97d4"
+              stroke="#0075de"
               strokeWidth="1.6"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -64,10 +64,10 @@ export default function MainLayout() {
           {!sidebarCollapsed && (
             <span
               style={{
-                fontFamily: "'Newsreader', Georgia, serif",
+                fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif",
                 fontSize: 20,
-                fontWeight: 600,
-                color: '#9b97d4',
+                fontWeight: 700,
+                color: '#0075de',
                 letterSpacing: '-0.02em',
                 whiteSpace: 'nowrap',
               }}

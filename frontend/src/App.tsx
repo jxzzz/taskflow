@@ -7,7 +7,7 @@ import enUS from 'antd/locale/en_US';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import { router } from '@/router';
-import { useAppStore, COLOR_SCHEMES } from '@/stores/appStore';
+import { useAppStore } from '@/stores/appStore';
 import { useAuthInit } from '@/hooks/useAuthInit';
 
 const queryClient = new QueryClient({
@@ -17,50 +17,50 @@ const queryClient = new QueryClient({
   },
 });
 
-/** Soft Pastel Atelier theme tokens by color scheme */
-function buildThemeTokens(csRgb: string) {
+/** Notion Design theme tokens */
+function buildThemeTokens() {
   return {
-    colorPrimary: '#9b97d4',
-    colorPrimaryBg: '#f3f2fb',
-    colorPrimaryBgHover: '#e8e6f8',
-    colorPrimaryBorder: '#9b97d4',
-    colorPrimaryHover: '#827ec4',
-    colorPrimaryActive: '#6b67a8',
+    colorPrimary: '#0075de',
+    colorPrimaryBg: 'rgba(0, 117, 222, 0.06)',
+    colorPrimaryBgHover: 'rgba(0, 117, 222, 0.10)',
+    colorPrimaryBorder: '#0075de',
+    colorPrimaryHover: '#005bab',
+    colorPrimaryActive: '#005bab',
 
     colorBgBase: '#ffffff',
     colorBgContainer: '#ffffff',
     colorBgElevated: '#ffffff',
-    colorBgLayout: `rgba(${csRgb}, 0.04)`,
-    colorBgSpotlight: '#faf9f6',
+    colorBgLayout: '#f6f5f4',
+    colorBgSpotlight: '#f6f5f4',
     colorBgMask: 'rgba(0, 0, 0, 0.30)',
 
-    colorText: '#2b2825',
-    colorTextSecondary: 'rgba(43, 40, 37, 0.58)',
-    colorTextTertiary: 'rgba(43, 40, 37, 0.36)',
-    colorTextQuaternary: 'rgba(43, 40, 37, 0.18)',
+    colorText: '#000000',
+    colorTextSecondary: '#31302e',
+    colorTextTertiary: '#615d59',
+    colorTextQuaternary: '#a39e98',
 
-    colorBorder: 'rgba(0, 0, 0, 0.07)',
-    colorBorderSecondary: 'rgba(0, 0, 0, 0.04)',
+    colorBorder: '#e6e6e6',
+    colorBorderSecondary: '#e6e6e6',
 
-    borderRadius: 10,
-    borderRadiusLG: 14,
-    borderRadiusSM: 8,
+    borderRadius: 8,
+    borderRadiusLG: 12,
+    borderRadiusSM: 5,
 
-    fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-    fontSize: 14,
-    fontSizeLG: 16,
-    fontSizeXL: 20,
+    fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif",
+    fontSize: 16,
+    fontSizeLG: 18,
+    fontSizeXL: 24,
 
-    controlHeight: 38,
-    controlHeightLG: 44,
-    lineHeight: 1.6,
+    controlHeight: 40,
+    controlHeightLG: 48,
+    lineHeight: 1.5,
 
-    colorSuccess: '#9bbc9e',
-    colorWarning: '#e8cf8e',
-    colorError: '#e8a09c',
-    colorInfo: '#99bcdb',
-    colorLink: '#9b97d4',
-    colorLinkHover: '#827ec4',
+    colorSuccess: '#1aae39',
+    colorWarning: '#dd5b00',
+    colorError: '#b30000',
+    colorInfo: '#62aef0',
+    colorLink: '#0075de',
+    colorLinkHover: '#005bab',
   };
 }
 
@@ -70,26 +70,23 @@ const locales: Record<string, typeof zhCN> = {
 };
 
 function AppInner() {
-  const colorScheme = useAppStore((s) => s.colorScheme);
   const language = useAppStore((s) => s.language);
-  const csRgb = COLOR_SCHEMES[colorScheme].accentRgb;
 
-  // 禁用前端右键菜单
+  // Disable browser right-click menu
   useEffect(() => {
     const handler = (e: MouseEvent) => e.preventDefault();
     document.addEventListener('contextmenu', handler);
     return () => document.removeEventListener('contextmenu', handler);
   }, []);
 
-  // 页面刷新时恢复用户信息（有 token 但无 user → 调 /auth/me）
+  // Restore user session on refresh
   useAuthInit();
 
-  // Sync dayjs locale
-  useMemo(() => {
+  useEffect(() => {
     dayjs.locale(language === 'zh-CN' ? 'zh-cn' : 'en');
   }, [language]);
 
-  const theme = useMemo(() => ({ token: buildThemeTokens(csRgb) }), [csRgb]);
+  const theme = useMemo(() => ({ token: buildThemeTokens() }), []);
   const locale = locales[language] || zhCN;
 
   return (

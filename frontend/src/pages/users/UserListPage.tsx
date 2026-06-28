@@ -7,7 +7,7 @@ import { useUsers, useDeleteUser, useUpdateUser } from '@/hooks/useUsers';
 import type { UserInfo } from '@/types/auth';
 import type { ColumnsType } from 'antd/es/table';
 
-const avatarPalette = ['#9b97d4', '#e8a09c', '#99bcdb', '#9bbc9e', '#e8cf8e', '#c4a0d4'];
+const avatarPalette = ['#0075de', '#dd5b00', '#62aef0', '#1aae39', '#d6b6f6', '#ff64c8'];
 const avatarColor = (name: string) => avatarPalette[name.charCodeAt(0) % avatarPalette.length];
 
 export default function UserListPage() {
@@ -34,7 +34,7 @@ export default function UserListPage() {
             style={{ backgroundColor: avatarColor(name), flexShrink: 0 }} />
           <div>
             <div style={{ fontWeight: 600 }}>{name}</div>
-            <div style={{ fontSize: 11, color: 'rgba(43,40,37,0.35)' }}>ID: {record.id}</div>
+            <div style={{ fontSize: 11, color: 'var(--color-ink-tertiary)' }}>ID: {record.id}</div>
           </div>
         </Space>
       ),
@@ -59,8 +59,8 @@ export default function UserListPage() {
       {data?.records?.length === 0 && !isFetching ? (
         <div style={{ textAlign: 'center', padding: 72 }}>
           <div style={{ fontSize: 48, marginBottom: 12, opacity: 0.3 }}>👥</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#2b2825', marginBottom: 4 }}>暂无用户</div>
-          <span style={{ color: 'rgba(43,40,37,0.4)', fontSize: 13 }}>用户注册后将显示在这里</span>
+          <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-ink-primary)', marginBottom: 4 }}>暂无用户</div>
+          <span style={{ color: 'var(--color-ink-secondary)', fontSize: 13 }}>用户注册后将显示在这里</span>
         </div>
       ) : (
         <Table rowKey="id" columns={columns} dataSource={data?.records} loading={isFetching}

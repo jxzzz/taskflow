@@ -216,14 +216,14 @@ export default function TaskCreateModal({
         }}>
           <div style={{
             width: 32, height: 32, borderRadius: 9,
-            background: 'linear-gradient(135deg, rgba(247, 200, 108, 0.25) 0%, rgba(240, 160, 80, 0.15) 100%)',
-            border: '1px solid rgba(247, 200, 108, 0.2)',
+            background: 'linear-gradient(135deg, rgba(255, 119, 89, 0.25) 0%, rgba(255, 119, 89, 0.15) 100%)',
+            border: '1px solid rgba(255, 119, 89, 0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             flexShrink: 0,
           }}>
-            <ThunderboltOutlined style={{ color: '#f7c86c', fontSize: 15 }} />
+            <ThunderboltOutlined style={{ color: '#0075de', fontSize: 15 }} />
           </div>
-          <Text style={{ fontSize: 15, fontWeight: 600, color: '#e8e6f0', letterSpacing: '-0.01em' }}>
+          <Text style={{ fontSize: 15, fontWeight: 600, color: '#e8e8ec', letterSpacing: '-0.01em' }}>
             创建任务
           </Text>
         </div>
@@ -256,21 +256,21 @@ export default function TaskCreateModal({
                 border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 10,
                 background: 'rgba(255,255,255,0.04)',
-                color: '#e8e6f0',
+                color: '#e8e8ec',
                 fontSize: 15,
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                 fontWeight: 400,
                 lineHeight: 1.55,
                 letterSpacing: '-0.01em',
                 padding: '10px 14px',
                 outline: 'none',
                 resize: 'none',
-                caretColor: '#f7c86c',
+                caretColor: '#0075de',
                 transition: 'border-color 0.2s ease',
                 overflow: 'hidden',
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(247, 200, 108, 0.4)';
+                e.currentTarget.style.borderColor = 'rgba(255, 119, 89, 0.4)';
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
@@ -302,19 +302,19 @@ export default function TaskCreateModal({
                 background: 'rgba(255,255,255,0.04)',
                 color: '#c8c4d8',
                 fontSize: 13,
-                fontFamily: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
+                fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                 fontWeight: 400,
                 lineHeight: 1.6,
                 letterSpacing: '-0.01em',
                 padding: '10px 14px',
                 outline: 'none',
                 resize: 'vertical',
-                caretColor: '#f7c86c',
+                caretColor: '#0075de',
                 minHeight: 72,
                 transition: 'border-color 0.2s ease',
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(247, 200, 108, 0.4)';
+                e.currentTarget.style.borderColor = 'rgba(255, 119, 89, 0.4)';
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
@@ -349,7 +349,7 @@ export default function TaskCreateModal({
                       color: priority === opt.value ? opt.color : 'rgba(255,255,255,0.25)',
                       fontSize: 12,
                       fontWeight: priority === opt.value ? 600 : 400,
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                     }}
@@ -381,7 +381,7 @@ export default function TaskCreateModal({
                     background: 'rgba(255,255,255,0.04)',
                     color: '#c8c4d8',
                     fontSize: 12,
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   }}
                 />
                 <DatePicker
@@ -398,7 +398,7 @@ export default function TaskCreateModal({
                     background: 'rgba(255,255,255,0.04)',
                     color: '#c8c4d8',
                     fontSize: 12,
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   }}
                 />
               </div>
@@ -444,7 +444,7 @@ export default function TaskCreateModal({
                       flex: 1,
                       fontSize: 12.5,
                       color: '#c8c4d8',
-                      fontFamily: "'DM Sans', sans-serif",
+                      fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                       letterSpacing: '-0.01em',
                     }}>
                       {item.title}
@@ -493,14 +493,14 @@ export default function TaskCreateModal({
                   background: 'rgba(255,255,255,0.04)',
                   color: '#c8c4d8',
                   fontSize: 12.5,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   padding: '6px 10px',
                   outline: 'none',
-                  caretColor: '#f7c86c',
+                  caretColor: '#0075de',
                   transition: 'border-color 0.2s ease',
                 }}
                 onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(247, 200, 108, 0.4)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 119, 89, 0.4)';
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
@@ -515,12 +515,12 @@ export default function TaskCreateModal({
                   borderRadius: 8,
                   border: '1px solid rgba(255,255,255,0.08)',
                   background: newCheckItem.trim()
-                    ? 'rgba(247, 200, 108, 0.12)'
+                    ? 'rgba(255, 119, 89, 0.12)'
                     : 'rgba(255,255,255,0.03)',
-                  color: newCheckItem.trim() ? '#f7c86c' : 'rgba(255,255,255,0.15)',
+                  color: newCheckItem.trim() ? '#0075de' : 'rgba(255,255,255,0.15)',
                   fontSize: 12,
                   fontWeight: 500,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   cursor: newCheckItem.trim() ? 'pointer' : 'default',
                   display: 'flex',
                   alignItems: 'center',
@@ -562,7 +562,7 @@ export default function TaskCreateModal({
                   borderRadius: 8,
                   padding: '5px 24px 5px 10px',
                   fontSize: 12,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   fontWeight: 500,
                   color: '#c8c4d8',
                   cursor: 'pointer',
@@ -598,7 +598,7 @@ export default function TaskCreateModal({
                   color: 'rgba(255,255,255,0.4)',
                   fontSize: 12.5,
                   fontWeight: 500,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                 }}
@@ -614,12 +614,12 @@ export default function TaskCreateModal({
                   borderRadius: 9999,
                   border: 'none',
                   background: title.trim()
-                    ? 'linear-gradient(135deg, #6eb5f0 0%, #5898d8 50%, #4a85c9 100%)'
+                    ? 'linear-gradient(135deg, #0075de 0%, #005bab 100%)'
                     : 'rgba(255,255,255,0.05)',
                   color: title.trim() ? '#fff' : 'rgba(255,255,255,0.2)',
                   fontSize: 12.5,
                   fontWeight: 600,
-                  fontFamily: "'DM Sans', sans-serif",
+                  fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
                   cursor: title.trim() ? 'pointer' : 'default',
                   letterSpacing: '0.01em',
                   transition: 'all 0.25s cubic-bezier(0.19, 1, 0.22, 1)',

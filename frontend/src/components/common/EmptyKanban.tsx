@@ -22,7 +22,7 @@ function GhostColumn({ index }: { index: number }) {
         width: 280,
         minWidth: 280,
         flexShrink: 0,
-        border: '2px dashed rgba(155, 151, 212, 0.15)',
+        border: '2px dashed rgba(0, 117, 222, 0.06)',
         borderRadius: 'var(--radius-lg)',
         padding: '14px 14px 10px',
         display: 'flex',
@@ -39,7 +39,7 @@ function GhostColumn({ index }: { index: number }) {
           height: 10,
           width: '55%',
           borderRadius: 5,
-          background: 'rgba(155, 151, 212, 0.12)',
+          background: 'rgba(0, 117, 222, 0.06)',
           marginBottom: 4,
           marginLeft: 4,
         }}
@@ -51,8 +51,8 @@ function GhostColumn({ index }: { index: number }) {
           style={{
             height: h,
             borderRadius: 'var(--radius-sm)',
-            background: 'rgba(155, 151, 212, 0.06)',
-            border: '1px dashed rgba(155, 151, 212, 0.1)',
+            background: 'rgba(0, 117, 222, 0.02)',
+            border: '1px dashed rgba(0, 117, 222, 0.04)',
           }}
         />
       ))}
@@ -69,10 +69,10 @@ function GhostLabel({ index, mounted }: { index: number; mounted: boolean }) {
       style={{
         fontSize: 11,
         fontWeight: 600,
-        color: 'rgba(155, 151, 212, 0.3)',
+        color: 'rgba(0, 117, 222, 0.15)',
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
-        fontFamily: "'DM Sans', sans-serif",
+        fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
         opacity: mounted ? 1 : 0,
         transform: mounted ? 'translateY(0)' : 'translateY(6px)',
         transition: `opacity 0.6s ease ${0.3 + index * 0.15}s, transform 0.6s ease ${0.3 + index * 0.15}s`,
@@ -106,7 +106,7 @@ function RocketIllustration() {
           height: 140,
           borderRadius: '50%',
           background:
-            'radial-gradient(circle, rgba(155, 151, 212, 0.18) 0%, rgba(153, 188, 219, 0.08) 40%, transparent 70%)',
+            'radial-gradient(circle, rgba(0, 117, 222, 0.08) 0%, rgba(24, 99, 220, 0.06) 40%, transparent 70%)',
           filter: 'blur(12px)',
           bottom: 50,
         }}
@@ -114,12 +114,12 @@ function RocketIllustration() {
 
       {/* Floating particles */}
       {[
-        { char: '✦', top: '8%', left: '10%', size: 10, delay: '0s', color: '#c9c6ee' },
-        { char: '◆', top: '18%', right: '12%', size: 6, delay: '0.8s', color: '#e8cf8e' },
-        { char: '•', top: '55%', left: '6%', size: 8, delay: '1.4s', color: '#9bbc9e' },
-        { char: '✧', top: '42%', right: '8%', size: 11, delay: '0.3s', color: '#99bcdb' },
-        { char: '·', top: '12%', left: '24%', size: 5, delay: '2.0s', color: '#e8a09c' },
-        { char: '◇', top: '68%', right: '16%', size: 7, delay: '1.1s', color: '#c9c6ee' },
+        { char: '✦', top: '8%', left: '10%', size: 10, delay: '0s', color: '#93939f' },
+        { char: '◆', top: '18%', right: '12%', size: 6, delay: '0.8s', color: '#dd5b00' },
+        { char: '•', top: '55%', left: '6%', size: 8, delay: '1.4s', color: '#1aae39' },
+        { char: '✧', top: '42%', right: '8%', size: 11, delay: '0.3s', color: '#62aef0' },
+        { char: '·', top: '12%', left: '24%', size: 5, delay: '2.0s', color: '#ff64c8' },
+        { char: '◇', top: '68%', right: '16%', size: 7, delay: '1.1s', color: '#93939f' },
       ].map((p, i) => (
         <span
           key={i}
@@ -147,7 +147,7 @@ function RocketIllustration() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          filter: 'drop-shadow(0 8px 24px rgba(155, 151, 212, 0.2))',
+          filter: 'drop-shadow(0 8px 24px rgba(0, 117, 222, 0.10))',
         }}
       >
         {/* Nose cone */}
@@ -157,7 +157,7 @@ function RocketIllustration() {
             height: 0,
             borderLeft: '28px solid transparent',
             borderRight: '28px solid transparent',
-            borderBottom: '42px solid #e8a09c',
+            borderBottom: '42px solid #dd5b00',
             marginBottom: -2,
             position: 'relative',
             zIndex: 2,
@@ -186,7 +186,7 @@ function RocketIllustration() {
             width: 56,
             height: 108,
             borderRadius: '28px 28px 10px 10px',
-            background: 'linear-gradient(105deg, #f5f3f0 0%, #ffffff 18%, #faf9f6 40%, #ffffff 62%, #eeebe6 100%)',
+            background: 'linear-gradient(105deg, #f5f5f5 0%, #ffffff 18%, #fafafa 40%, #ffffff 62%, #f0f0f0 100%)',
             position: 'relative',
             zIndex: 1,
             boxShadow:
@@ -204,7 +204,7 @@ function RocketIllustration() {
               left: 0,
               right: 0,
               height: 3,
-              background: 'linear-gradient(90deg, transparent 0%, rgba(155,151,212,0.25) 20%, rgba(155,151,212,0.35) 50%, rgba(155,151,212,0.25) 80%, transparent 100%)',
+              background: 'linear-gradient(90deg, transparent 0%, rgba(23,23,28,0.15) 20%, rgba(23,23,28,0.22) 50%, rgba(23,23,28,0.15) 80%, transparent 100%)',
               borderRadius: 2,
             }}
           />
@@ -219,7 +219,7 @@ function RocketIllustration() {
               marginTop: 26,
               position: 'relative',
               boxShadow:
-                'inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.08), 0 0 0 3px rgba(255,255,255,0.5), 0 0 0 5px rgba(155,151,212,0.2)',
+                'inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.08), 0 0 0 3px rgba(255,255,255,0.5), 0 0 0 5px rgba(23,23,28,0.12)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -249,7 +249,7 @@ function RocketIllustration() {
                     width: 5,
                     height: 5.5,
                     borderRadius: '50%',
-                    background: '#2b2825',
+                    background: '#000000',
                     display: 'inline-block',
                   }}
                 />
@@ -258,7 +258,7 @@ function RocketIllustration() {
                     width: 5,
                     height: 5.5,
                     borderRadius: '50%',
-                    background: '#2b2825',
+                    background: '#000000',
                     display: 'inline-block',
                   }}
                 />
@@ -268,7 +268,7 @@ function RocketIllustration() {
                 style={{
                   width: 10,
                   height: 5,
-                  borderBottom: '2px solid #2b2825',
+                  borderBottom: '2px solid #000000',
                   borderRadius: '0 0 50% 50%',
                   marginTop: 2,
                 }}
@@ -284,7 +284,7 @@ function RocketIllustration() {
               left: 4,
               right: 4,
               height: 2,
-              background: 'linear-gradient(90deg, transparent 0%, rgba(155,151,212,0.2) 30%, rgba(155,151,212,0.3) 50%, rgba(155,151,212,0.2) 70%, transparent 100%)',
+              background: 'linear-gradient(90deg, transparent 0%, rgba(23,23,28,0.12) 30%, rgba(23,23,28,0.18) 50%, rgba(23,23,28,0.12) 70%, transparent 100%)',
               borderRadius: 1,
             }}
           />
@@ -299,7 +299,7 @@ function RocketIllustration() {
             left: -16,
             width: 22,
             height: 36,
-            background: 'linear-gradient(180deg, #e8a09c 0%, #d48580 100%)',
+            background: 'linear-gradient(180deg, #dd5b00 0%, #e06650 100%)',
             borderRadius: '4px 14px 6px 4px',
             transform: 'rotate(18deg)',
             zIndex: 0,
@@ -314,7 +314,7 @@ function RocketIllustration() {
             right: -16,
             width: 22,
             height: 36,
-            background: 'linear-gradient(180deg, #d48580 0%, #c0706b 100%)',
+            background: 'linear-gradient(180deg, #e06650 0%, #cc5540 100%)',
             borderRadius: '14px 4px 4px 6px',
             transform: 'rotate(-18deg)',
             zIndex: 0,
@@ -330,7 +330,7 @@ function RocketIllustration() {
             transform: 'translateX(-50%)',
             width: 12,
             height: 20,
-            background: 'linear-gradient(180deg, #f0c4c1 0%, #e8a09c 100%)',
+            background: 'linear-gradient(180deg, #ffad9b 0%, #dd5b00 100%)',
             borderRadius: '2px 2px 6px 6px',
             zIndex: 2,
           }}
@@ -357,7 +357,7 @@ function RocketIllustration() {
               width: 36,
               height: 44,
               borderRadius: '50% 50% 50% 50% / 40% 40% 60% 60%',
-              background: 'linear-gradient(180deg, #f9c970 0%, #f5a623 40%, #e8873a 100%)',
+              background: 'linear-gradient(180deg, #62aef0 0%, #0075de 40%, #005bab 100%)',
               filter: 'blur(1.5px)',
               marginTop: -6,
             }}
@@ -399,7 +399,7 @@ function RocketIllustration() {
           width: 90,
           height: 14,
           borderRadius: '50%',
-          background: 'radial-gradient(ellipse, rgba(155,151,212,0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse, rgba(23,23,28,0.08) 0%, transparent 70%)',
         }}
       />
     </div>
@@ -484,8 +484,8 @@ export default function EmptyKanban({ onBootstrap }: EmptyKanbanProps) {
           level={3}
           style={{
             margin: '0 0 6px',
-            fontFamily: "'Newsreader', Georgia, 'Times New Roman', serif",
-            fontWeight: 500,
+            fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif",
+            fontWeight: 400,
             fontSize: 26,
             color: 'var(--color-ink-primary)',
             letterSpacing: '-0.02em',
@@ -517,13 +517,13 @@ export default function EmptyKanban({ onBootstrap }: EmptyKanbanProps) {
             marginBottom: 24,
             fontSize: 11,
             color: 'var(--color-ink-disabled)',
-            fontFamily: "'DM Sans', sans-serif",
+            fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
           }}
         >
           {[
-            { label: 'To Do', color: '#9b97d4' },
-            { label: 'Doing', color: '#f0a850' },
-            { label: 'Done', color: '#9bbc9e' },
+            { label: 'To Do', color: '#0075de' },
+            { label: 'Doing', color: '#dd5b00' },
+            { label: 'Done', color: '#1aae39' },
           ].map((col) => (
             <span
               key={col.label}
@@ -547,17 +547,15 @@ export default function EmptyKanban({ onBootstrap }: EmptyKanbanProps) {
           icon={<ThunderboltOutlined />}
           onClick={handleClick}
           loading={loading}
-          className="empty-kanban-cta"
           style={{
             height: 48,
             paddingInline: 32,
             fontSize: 15,
             fontWeight: 600,
-            borderRadius: 'var(--radius-full)',
-            background: 'linear-gradient(135deg, #5B9FED 0%, #4A85D9 50%, #3D6FBF 100%)',
+            borderRadius: 'var(--radius-pill)',
+            background: '#0075de',
             border: 'none',
-            boxShadow:
-              '0 2px 8px rgba(74, 133, 217, 0.25), 0 6px 24px rgba(74, 133, 217, 0.18), 0 0 0 4px rgba(74, 133, 217, 0.06)',
+            boxShadow: 'none',
             letterSpacing: '0.01em',
             transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
           }}
@@ -565,12 +563,11 @@ export default function EmptyKanban({ onBootstrap }: EmptyKanbanProps) {
             if (loading) return;
             e.currentTarget.style.transform = 'translateY(-2px)';
             e.currentTarget.style.boxShadow =
-              '0 4px 14px rgba(74, 133, 217, 0.32), 0 10px 36px rgba(74, 133, 217, 0.22), 0 0 0 8px rgba(74, 133, 217, 0.08)';
+              '0 4px 14px rgba(0, 117, 222, 0.20), 0 10px 36px rgba(0, 117, 222, 0.14)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow =
-              '0 2px 8px rgba(74, 133, 217, 0.25), 0 6px 24px rgba(74, 133, 217, 0.18), 0 0 0 4px rgba(74, 133, 217, 0.06)';
+            e.currentTarget.style.boxShadow = 'none';
           }}
         >
           初始化看板
@@ -594,7 +591,7 @@ export default function EmptyKanban({ onBootstrap }: EmptyKanbanProps) {
               background: 'var(--color-bg-surface)',
               border: '1px solid var(--color-border-default)',
               fontSize: 10.5,
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif",
               color: 'var(--color-ink-tertiary)',
               margin: '0 2px',
             }}

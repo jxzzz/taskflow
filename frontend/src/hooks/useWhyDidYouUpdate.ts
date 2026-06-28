@@ -18,7 +18,7 @@ export function useWhyDidYouUpdate(name: string, props: Record<string, unknown>)
       if (changed.length) {
         console.log(
           `%c[${name}] re-render caused by:`,
-          'color: #9b97d4; font-weight: 600',
+          'color: #0075de; font-weight: 600',
           changed,
         );
       }

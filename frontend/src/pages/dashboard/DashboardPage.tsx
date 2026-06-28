@@ -19,7 +19,7 @@ import { useActivities } from '@/hooks/useActivity';
 import { useCreateProject } from '@/hooks/useProjects';
 import { ROUTES } from '@/router/routes';
 import { useAuthStore } from '@/stores/authStore';
-import { useAppStore, COLOR_SCHEMES, type ColorScheme, type Language } from '@/stores/appStore';
+import { useAppStore, type Language } from '@/stores/appStore';
 import type { CreateProjectRequest } from '@/types/project';
 import { PROJECT_STATUS_CONFIG } from '@/types/project';
 import dayjs from 'dayjs';
@@ -32,8 +32,6 @@ export default function DashboardPage() {
   const { data: activityData, isFetching: activityLoading } = useActivities();
 
   // App-wide settings
-  const colorScheme = useAppStore((s) => s.colorScheme);
-  const setColorScheme = useAppStore((s) => s.setColorScheme);
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);
 
@@ -48,15 +46,6 @@ export default function DashboardPage() {
     [createMutation],
   );
 
-  // Theme cycling
-  const handleToggleTheme = useCallback(() => {
-    const schemes: ColorScheme[] = ['pastel-warm', 'pastel-cool', 'pastel-mint', 'pastel-rose'];
-    const idx = schemes.indexOf(colorScheme);
-    const next = schemes[(idx + 1) % schemes.length];
-    setColorScheme(next);
-    message.success(`配色方案：${COLOR_SCHEMES[next].label}`);
-  }, [colorScheme, setColorScheme]);
-
   // Language toggle
   const handleToggleLanguage = useCallback(() => {
     const next: Language = language === 'zh-CN' ? 'en' : 'zh-CN';
@@ -67,7 +56,6 @@ export default function DashboardPage() {
   // Quick action menu items
   const quickActionItems = useQuickActionItems(
     () => setCreateOpen(true),
-    handleToggleTheme,
     handleToggleLanguage,
   );
 
@@ -123,14 +111,14 @@ export default function DashboardPage() {
                   {stat.icon}
                 </div>
                 <div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: '#2b2825', lineHeight: 1.2 }}>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-ink-primary)', lineHeight: 1.2 }}>
                     {stat.value}
                   </div>
-                  <Text style={{ fontSize: 12.5, color: 'rgba(43,40,37,0.48)' }}>{stat.label}</Text>
+                  <Text style={{ fontSize: 12.5, color: 'var(--color-ink-secondary)' }}>{stat.label}</Text>
                 </div>
                 {stat.link && (
                   <Link to={stat.link} style={{ marginLeft: 'auto' }}>
-                    <ArrowRightOutlined style={{ color: 'rgba(43,40,37,0.25)', fontSize: 14 }} />
+                    <ArrowRightOutlined style={{ color: 'var(--color-ink-disabled)', fontSize: 14 }} />
                   </Link>
                 )}
               </div>
@@ -150,7 +138,7 @@ export default function DashboardPage() {
       >
         <Title
           level={5}
-          style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, margin: 0 }}
+          style={{ fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif", fontWeight: 700, margin: 0 }}
         >
           我的项目
         </Title>
@@ -195,12 +183,10 @@ export default function DashboardPage() {
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = 'var(--shadow-card)';
                     e.currentTarget.style.borderColor = 'var(--color-border-default)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
                     e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
-                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
                   {/* Top row: name + status + arrow */}
@@ -264,8 +250,8 @@ export default function DashboardPage() {
                     {/* Owner tag */}
                     <Tag
                       style={{
-                        background: 'var(--tag-lavender)',
-                        color: 'var(--tag-lavender-text)',
+                        background: 'var(--color-lavender-soft)',
+                        color: 'var(--color-ink-primary)',
                         border: 'none',
                         margin: 0,
                         fontSize: 11,
@@ -375,7 +361,7 @@ export default function DashboardPage() {
           >
             <Title
               level={5}
-              style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, margin: 0 }}
+              style={{ fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif", fontWeight: 700, margin: 0 }}
             >
               发现项目
             </Title>
@@ -399,18 +385,14 @@ export default function DashboardPage() {
                       boxShadow: 'var(--shadow-xs)',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.boxShadow = 'var(--shadow-card)';
                       e.currentTarget.style.borderColor = 'var(--color-border-default)';
-                      e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
                       e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
-                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <Text strong style={{ fontSize: 14, color: '#2b2825', fontFamily: "'DM Sans', sans-serif" }}>
+                      <Text strong style={{ fontSize: 14, color: 'var(--color-ink-primary)', fontFamily: "'Inter', 'Arial', 'ui-sans-serif', sans-serif" }}>
                         {p.name}
                       </Text>
                       <ArrowRightOutlined style={{ color: 'var(--color-ink-disabled)', fontSize: 12, opacity: 0 }} className="pub-arrow" />
@@ -421,13 +403,13 @@ export default function DashboardPage() {
                       </Text>
                     )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <Tag style={{ margin: 0, background: 'rgba(155,151,212,0.08)', color: '#6b67a8', border: 'none', fontSize: 10 }}>
+                      <Tag style={{ margin: 0, background: 'rgba(23,23,28,0.06)', color: 'var(--color-ink-primary)', border: 'none', fontSize: 10 }}>
                         {p.ownerName}
                       </Tag>
                       <Tag color={(PROJECT_STATUS_CONFIG[p.status] || PROJECT_STATUS_CONFIG.active).color} style={{ margin: 0, fontSize: 10 }}>
                         {(PROJECT_STATUS_CONFIG[p.status] || PROJECT_STATUS_CONFIG.active).label}
                       </Tag>
-                      <Tag style={{ margin: 0, fontSize: 10, background: 'rgba(155,187,158,0.12)', color: '#5a8a5c', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+                      <Tag style={{ margin: 0, fontSize: 10, background: 'var(--color-sage-soft)', color: 'var(--color-sage)', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
                         <GlobalOutlined style={{ fontSize: 10 }} />公开
                       </Tag>
                     </div>

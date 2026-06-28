@@ -167,10 +167,10 @@ export default function KanbanColumn({
             {...provided.droppableProps}
             style={{
               ...listStyle,
-              background: snapshot.isDraggingOver ? 'rgba(155, 151, 212, 0.06)' : 'transparent',
+              background: snapshot.isDraggingOver ? 'rgba(0, 117, 222, 0.04)' : 'transparent',
               border:
                 snapshot.isDraggingOver && isEmpty
-                  ? '2px dashed rgba(155, 151, 212, 0.25)'
+                  ? '2px dashed rgba(0, 117, 222, 0.08)'
                   : '2px dashed transparent',
             }}
           >
@@ -239,14 +239,14 @@ export default function KanbanColumn({
         flex: '1 1 0',
         minWidth: 260,
         maxWidth: 380,
-        background: '#f5faf6',
+        background: 'var(--color-bg-surface)',
         borderRadius: 'var(--radius-lg)',
         padding: '12px 14px 10px',
         display: 'flex',
         flexDirection: 'column',
         maxHeight: '100%',
         opacity: isColumnDragging ? 0.5 : 1,
-        border: '1px solid rgba(155, 188, 158, 0.2)',
+        border: '1px solid var(--color-border-subtle)',
         height: '100%',
       }}
     >

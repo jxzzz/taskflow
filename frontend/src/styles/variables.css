@@ -5,62 +5,81 @@
   --header-height: 56px;
   --content-max-width: 1400px;
 
-  /* === Soft Pastel Atelier Palette === */
-  --color-bg-deep:       #f6f4f0;   /* 最深暖底 — 全局背景 */
-  --color-bg-base:        #faf9f6;   /* 基底 — 侧边栏 */
-  --color-bg-elevated:    #ffffff;   /* 抬升 — 卡片 */
-  --color-bg-surface:     #f3f1ed;   /* 表面 — 输入框/hover */
-  --color-bg-hover:       #ebe8e2;   /* hover */
+  /* === Notion Design Palette === */
 
-  --color-border-subtle:  rgba(0, 0, 0, 0.04);
-  --color-border-default: rgba(0, 0, 0, 0.07);
-  --color-border-strong:  rgba(0, 0, 0, 0.12);
+  /* Background — warm paper canvas, never clinical white */
+  --color-bg-deep:       #f6f5f4;   /* warm paper — global background */
+  --color-bg-base:        #f6f5f4;   /* base — sidebar, panels */
+  --color-bg-elevated:    #ffffff;   /* elevated — cards, fields */
+  --color-bg-surface:     #f6f5f4;   /* surface — input backgrounds */
+  --color-bg-hover:       #ebebea;   /* hover states */
 
-  /* Warm text */
-  --color-ink-primary:    #2b2825;
-  --color-ink-secondary:  rgba(43, 40, 37, 0.58);
-  --color-ink-tertiary:   rgba(43, 40, 37, 0.36);
-  --color-ink-disabled:   rgba(43, 40, 37, 0.18);
+  /* Borders — hairline-driven */
+  --color-border-subtle:  #e6e6e6;   /* hairline — card borders */
+  --color-border-default: #e6e6e6;   /* hairline — standard dividers */
+  --color-border-strong:  #d5d5d5;   /* stronger border */
 
-  /* Pastel accents */
-  --color-lavender:       #9b97d4;   /* 薰衣草 — 主色 */
-  --color-lavender-soft:  rgba(155, 151, 212, 0.10);
-  --color-lavender-hover: #827ec4;
+  /* Text / Ink — warm charcoal scale */
+  --color-ink-primary:    #000000;   /* ink — primary body/heading text */
+  --color-ink-secondary:  #31302e;   /* warm charcoal — secondary copy */
+  --color-ink-tertiary:   #615d59;   /* stone — muted/supporting */
+  --color-ink-disabled:   #a39e98;   /* ash — captions, placeholders */
 
-  --color-coral:          #e8a09c;   /* 蜜桃 */
-  --color-coral-soft:     rgba(232, 160, 156, 0.10);
+  /* Accent — Notion blue, the single structural accent */
+  --color-lavender:       #0075de;   /* Notion blue — primary CTA, links */
+  --color-lavender-soft:  rgba(0, 117, 222, 0.06);
+  --color-lavender-hover: #005bab;   /* pressed blue */
 
-  --color-sage:           #9bbc9e;   /* 鼠尾草 */
-  --color-sage-soft:      rgba(155, 188, 158, 0.10);
+  --color-coral:          #dd5b00;   /* sticker orange — warning, overdue */
+  --color-coral-soft:     rgba(221, 91, 0, 0.08);
 
-  --color-butter:         #e8cf8e;   /* 黄油 */
-  --color-butter-soft:    rgba(232, 207, 142, 0.12);
+  --color-sage:           #1aae39;   /* sticker green — success, complete */
+  --color-sage-soft:      rgba(26, 174, 57, 0.08);
 
-  --color-sky:            #99bcdb;   /* 浅天蓝 */
-  --color-sky-soft:       rgba(153, 188, 219, 0.10);
+  --color-butter:         #dd5b00;   /* warning / priority accent */
+  --color-butter-soft:    rgba(221, 91, 0, 0.08);
 
-  /* Pill tag pastels */
-  --tag-lavender: #e8e6f8; --tag-lavender-text: #6b67a8;
-  --tag-coral:    #fae3e1; --tag-coral-text:    #b86d6a;
-  --tag-sage:     #e2efe3; --tag-sage-text:     #6d8a6f;
-  --tag-butter:   #faf0da; --tag-butter-text:   #9e853d;
-  --tag-sky:      #e1edf6; --tag-sky-text:      #5a809b;
-  --tag-rose:     #f2dee6; --tag-rose-text:     #9e6d80;
+  --color-sky:            #62aef0;   /* sticker sky — info */
+  --color-sky-soft:       rgba(98, 174, 240, 0.08);
 
-  /* Radius — soft, pill, rounded */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
-  --radius-full: 9999px;
+  /* Notion-specific colors */
+  --color-secondary:      #213183;   /* deep indigo — dark hero band */
+  --color-accent-purple:  #d6b6f6;   /* sticker purple */
+  --color-accent-purple-deep: #391c57;
+  --color-accent-pink:    #ff64c8;   /* sticker pink */
+  --color-accent-teal:    #2a9d99;   /* sticker teal */
+  --color-accent-brown:   #523410;   /* sticker brown */
+  --color-error:          #b30000;   /* error / validation */
+  --color-on-primary:     #ffffff;   /* text on primary/dark backgrounds */
 
-  /* Shadows — soft & airy */
-  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.04);
-  --shadow-elevated: 0 2px 4px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.06);
-  --shadow-modal: 0 4px 8px rgba(0, 0, 0, 0.06), 0 16px 40px rgba(0, 0, 0, 0.10);
+  /* Focus indicator */
+  --color-focus-ring:     rgba(0, 117, 222, 0.25);
+
+  /* Radius — Notion scale: tight inputs, friendly cards, pill CTAs */
+  --radius-xs:   4px;     /* form fields, small tags */
+  --radius-sm:   5px;     /* menu items, status pills */
+  --radius-md:   8px;     /* utility buttons, smaller cards */
+  --radius-lg:   12px;    /* feature cards, illustration frames */
+  --radius-xl:   16px;    /* large containers, image wells */
+  --radius-pill: 9999px;  /* marketing pill CTAs */
+  --radius-full: 9999px;  /* pill badges, circular icons */
+
+  /* Shadows — barely-there layered (Notion's signature) */
+  --shadow-xs:        none;
+  --shadow-sm:        none;
+  --shadow-card:      0 0.175px 1.041px rgba(0, 0, 0, 0.01),
+                      0 0.8px 2.925px rgba(0, 0, 0, 0.02),
+                      0 2.025px 7.847px rgba(0, 0, 0, 0.027),
+                      0 4px 18px rgba(0, 0, 0, 0.04);
+  --shadow-elevated:  0 0.175px 1.041px rgba(0, 0, 0, 0.01),
+                      0 0.8px 2.925px rgba(0, 0, 0, 0.02),
+                      0 2.025px 7.847px rgba(0, 0, 0, 0.027),
+                      0 4px 18px rgba(0, 0, 0, 0.04);
+  --shadow-modal:     0 0.175px 1.041px rgba(0, 0, 0, 0.01),
+                      0 0.8px 2.925px rgba(0, 0, 0, 0.02),
+                      0 2.025px 7.847px rgba(0, 0, 0, 0.027),
+                      0 8px 26px rgba(0, 0, 0, 0.05),
+                      0 23px 52px rgba(0, 0, 0, 0.05);
 
   /* Transitions */
   --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);

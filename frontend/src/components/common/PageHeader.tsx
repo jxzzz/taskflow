@@ -22,10 +22,10 @@ export default function PageHeader({ title, subtitle, breadcrumb, extra }: PageH
         {breadcrumb && (
           <Breadcrumb items={[{ title: <Link to="/dashboard"><HomeOutlined /></Link> }, ...(items || [])]} style={{ marginBottom: 6 }} />
         )}
-        <Title level={4} style={{ margin: 0, fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500, fontSize: 24, color: '#2b2825' }}>
+        <Title level={4} style={{ margin: 0, fontFamily: "'Inter', -apple-system, 'system-ui', 'Segoe UI', Helvetica, Arial, sans-serif", fontWeight: 700, fontSize: 24, color: 'var(--color-ink-primary)' }}>
           {title}
         </Title>
-        {subtitle && <Typography.Text style={{ color: 'rgba(43,40,37,0.45)', fontSize: 13.5, display: 'block', marginTop: 4 }}>{subtitle}</Typography.Text>}
+        {subtitle && <Typography.Text style={{ color: 'var(--color-ink-tertiary)', fontSize: 13.5, display: 'block', marginTop: 4 }}>{subtitle}</Typography.Text>}
       </div>
       {extra && <div>{extra}</div>}
     </div>

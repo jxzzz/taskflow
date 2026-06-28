@@ -28,7 +28,7 @@ export default function Header() {
   return (
     <AntHeader style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 20px', background: '#faf9f6', borderBottom: '1px solid var(--color-border-subtle)',
+      padding: '0 20px', background: 'var(--color-bg-base)', borderBottom: '1px solid var(--color-border-subtle)',
       height: 56,
     }}>
       {/* Sidebar toggle */}

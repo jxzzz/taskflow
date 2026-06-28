@@ -424,7 +424,7 @@ function DangerZone({
       <Title level={5} style={{ marginBottom: 16, marginTop: 0 }}>危险区域</Title>
 
       <div style={{ border: '1px solid var(--color-coral)', borderRadius: 12, padding: 20, background: 'var(--color-coral-soft)' }}>
-        <Text strong style={{ color: 'var(--color-coral-text)', fontSize: 14 }}>删除项目</Text>
+        <Text strong style={{ color: 'var(--color-coral)', fontSize: 14 }}>删除项目</Text>
         <p style={{ color: 'var(--color-ink-secondary)', fontSize: 13, margin: '8px 0 16px' }}>
           删除后，所有列表和任务将被<strong>级联永久删除</strong>，不可恢复。请输入项目名称确认。
         </p>
