@@ -11,7 +11,7 @@ import {
 import { Link } from 'react-router-dom';
 import PageHeader from '@/components/common/PageHeader';
 import QuickActionFab from '@/components/common/QuickActionFab';
-import { useQuickActionItems } from '@/components/common/QuickActionFab';
+import { useQuickActionItems } from '@/hooks/useQuickActionItems';
 import CreateProjectModal from '@/components/common/CreateProjectModal';
 import ActivityTimeline from '@/components/dashboard/ActivityTimeline';
 import { useDashboard } from '@/hooks/useDashboard';

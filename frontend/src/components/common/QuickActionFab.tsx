@@ -1,13 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  PlusOutlined,
-  ProjectOutlined,
-  TranslationOutlined,
-  SettingOutlined,
-  ThunderboltOutlined,
-} from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '@/router/routes';
+import { PlusOutlined } from '@ant-design/icons';
+import { parseColorToRgb } from '@/utils/color';
 
 export interface QuickActionItem {
   key: string;
@@ -143,49 +136,3 @@ export default function QuickActionFab({ items }: QuickActionFabProps) {
   );
 }
 
-/** Extract "r, g, b" from a hex color for rgba() usage */
-function parseColorToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r}, ${g}, ${b}`;
-}
-
-/** Pre-built menu items */
-export function useQuickActionItems(
-  onCreateProject: () => void,
-  onToggleLanguage: () => void,
-): QuickActionItem[] {
-  const navigate = useNavigate();
-
-  return [
-    {
-      key: 'new-project',
-      icon: <ProjectOutlined />,
-      label: '新建项目',
-      color: '#0075de',
-      onClick: onCreateProject,
-    },
-    {
-      key: 'quick-task',
-      icon: <ThunderboltOutlined />,
-      label: '快速任务',
-      color: '#dd5b00',
-      onClick: () => navigate(ROUTES.PROJECTS),
-    },
-    {
-      key: 'language',
-      icon: <TranslationOutlined />,
-      label: '语言',
-      color: '#62aef0',
-      onClick: onToggleLanguage,
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: '设置',
-      color: '#93939f',
-      onClick: () => navigate(ROUTES.SETTINGS),
-    },
-  ];
-}
