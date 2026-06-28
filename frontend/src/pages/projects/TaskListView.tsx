@@ -125,6 +125,7 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
           return (
             <div
               key={task.id}
+              className="task-list-row"
               onClick={() => onTaskClick(task.id)}
               style={{
                 display: 'grid',
@@ -138,12 +139,6 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
                 opacity: mounted ? 1 : 0,
                 transform: mounted ? 'translateX(0)' : 'translateX(-8px)',
                 transitionDelay: mounted ? `${0.08 + i * 0.025}s` : '0s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-bg-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
               }}
             >
               {/* Priority dot */}
@@ -261,6 +256,9 @@ export default function TaskListView({ lists, onTaskClick }: TaskListViewProps) 
           );
         })}
       </div>
+      <style>{`
+        .task-list-row:hover { background: var(--color-bg-hover) !important; }
+      `}</style>
     </div>
   );
 }

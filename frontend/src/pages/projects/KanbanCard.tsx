@@ -63,20 +63,6 @@ export default function KanbanCard({
       className="kanban-card"
       style={style}
       onClick={isDragging ? undefined : onClick}
-      onMouseEnter={
-        isDragging
-          ? undefined
-          : (e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border-default)';
-            }
-      }
-      onMouseLeave={
-        isDragging
-          ? undefined
-          : (e) => {
-              e.currentTarget.style.borderColor = 'var(--color-border-subtle)';
-            }
-      }
     >
       {/* Cover color strip */}
       {hasCover && <div style={{ height: 3, background: card.coverColor, flexShrink: 0 }} />}
@@ -232,6 +218,8 @@ export default function KanbanCard({
         </div>
 
         <style>{`
+          .kanban-card { transition: border-color 0.2s ease; }
+          .kanban-card:hover { border-color: var(--color-border-default) !important; }
           .kanban-card .card-actions { opacity: 0; }
           .kanban-card:hover .card-actions { opacity: 1 !important; }
         `}</style>

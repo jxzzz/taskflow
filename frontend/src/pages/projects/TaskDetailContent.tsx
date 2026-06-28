@@ -135,6 +135,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
         {items.map((item) => (
           <div
             key={item.id}
+            className="checklist-item"
             style={{
               display: 'flex', alignItems: 'flex-start', gap: 10,
               padding: '8px 10px 8px 4px',
@@ -144,12 +145,6 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
               userSelect: 'none',
             }}
             onClick={() => toggleItem.mutate(item.id)}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(23,23,28,0.06)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-            }}
           >
             <Checkbox checked={item.completed} style={{ marginTop: 2, pointerEvents: 'none' }} />
             <span style={{
@@ -165,14 +160,13 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
             </span>
             <button
               type="button"
+              className="checklist-delete-btn"
               onClick={(e) => { e.stopPropagation(); deleteItem.mutate(item.id); }}
               style={{
                 border: 'none', background: 'transparent', cursor: 'pointer',
                 color: 'transparent', padding: '2px 4px', borderRadius: 4,
                 fontSize: 12, lineHeight: 1, transition: 'color 0.15s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(0,0,0,0.2)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'transparent'; }}
             >
               ×
             </button>
@@ -225,6 +219,7 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
         ) : (
           /* "+" trigger row */
           <div
+            className="checklist-add-row"
             onClick={() => setAdding(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: 10,
@@ -234,14 +229,6 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
               transition: 'background 0.15s ease, border-color 0.15s ease',
               border: '1px solid transparent',
               userSelect: 'none',
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'rgba(23,23,28,0.04)';
-              (e.currentTarget as HTMLElement).style.borderColor = 'rgba(23,23,28,0.08)';
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
-              (e.currentTarget as HTMLElement).style.borderColor = 'transparent';
             }}
           >
             <span style={{
@@ -341,6 +328,11 @@ export default function TaskDetailContent({ task }: { task: TaskDetail }) {
           </div>
         </div>
       </div>
+      <style>{`
+        .checklist-item:hover { background: rgba(23,23,28,0.06); }
+        .checklist-delete-btn:hover { color: rgba(0,0,0,0.2) !important; }
+        .checklist-add-row:hover { background: rgba(23,23,28,0.04); border-color: rgba(23,23,28,0.08); }
+      `}</style>
     </div>
   );
 }

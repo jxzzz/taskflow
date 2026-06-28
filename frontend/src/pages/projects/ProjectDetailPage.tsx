@@ -478,6 +478,7 @@ export default function ProjectDetailPage() {
                   ) : (
                     <button
                       type="button"
+                      className="add-list-btn"
                       onClick={() => setAddingList(true)}
                       style={{
                         flex: '1 1 0',
@@ -496,16 +497,6 @@ export default function ProjectDetailPage() {
                         gap: 8,
                         transition: 'all 0.3s cubic-bezier(0.19, 1, 0.22, 1)',
                         animation: 'addListFadeIn 0.4s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(0, 117, 222, 0.20)';
-                        e.currentTarget.style.background = 'rgba(0, 117, 222, 0.02)';
-                        e.currentTarget.style.boxShadow = '0 0 0 4px rgba(0, 117, 222, 0.04)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = 'rgba(0, 117, 222, 0.06)';
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.boxShadow = 'none';
                       }}
                     >
                       <span
@@ -599,6 +590,11 @@ export default function ProjectDetailPage() {
         @keyframes addListExpand {
           from { opacity: 0; transform: scale(0.94); }
           to   { opacity: 1; transform: scale(1); }
+        }
+        .add-list-btn:hover {
+          border-color: rgba(0, 117, 222, 0.20) !important;
+          background: rgba(0, 117, 222, 0.02) !important;
+          box-shadow: 0 0 0 4px rgba(0, 117, 222, 0.04) !important;
         }
       `}</style>
     </div>

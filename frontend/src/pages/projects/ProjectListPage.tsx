@@ -66,12 +66,13 @@ export default function ProjectListPage() {
 
           return (
             <Col xs={24} sm={12} md={8} lg={6} key={project.id}>
-              <div onClick={() => navigate(`/projects/${project.id}`)}
+              <div
+                className="project-card"
+                onClick={() => navigate(`/projects/${project.id}`)}
                 style={{ borderRadius: 16, overflow: 'hidden', background: '#ffffff', boxShadow: 'var(--shadow-card)',
                   cursor: 'pointer', border: '1px solid rgba(0,0,0,0.04)',
                   transition: 'all 280ms cubic-bezier(0.19, 1, 0.22, 1)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-border-default)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(0,0,0,0.04)'; }}>
+              >
                 {/* Color cover */}
                 <div style={{ height: 72, background: cover, position: 'relative' }}>
                   <Tag style={{ position: 'absolute', top: 10, left: 10, margin: 0, border: 'none', background: 'rgba(255,255,255,0.25)', color: '#fff', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
@@ -146,6 +147,9 @@ export default function ProjectListPage() {
           endDate: editProject.endDate,
         } : undefined}
       />
+      <style>{`
+        .project-card:hover { border-color: var(--color-border-default) !important; }
+      `}</style>
     </div>
   );
 }
